@@ -1,0 +1,93 @@
+# blocks/dataset.yaml
+#
+# Mappings for root-level dataset fields — DOI, publisher, dates, files, etc.
+# These fields come from the top-level "data" object and "latestVersion" object,
+# not from any named metadata block.
+#
+# Most entries use handlers because the source data requires more than a simple
+# field lookup (e.g. DOI needs two fields joined, dates need a container element
+# with typed children, files need aggregation).
+#
+# The `order` value on each mapping controls its position in the final DataCite
+# XML. DataCite kernel-4 requires a specific element sequence, so order values
+# here and in citation.yaml must stay consistent with that sequence.
+# Gaps between values leave room for future insertions.
+
+block: dataset
+
+mappings:
+
+  # --- Required fields ---
+
+  # <identifier identifierType="DOI">10.5072/FK2/LPRNCI</identifier>
+  - source: _doi
+    from: dataset
+    target: identifier
+    order: 10
+    handler: doi_identifier
+
+  # <publisher>UCSB Dataverse</publisher>
+  # `from: dataset` reads directly from ds rather than a metadata block fields list.
+  - source: publisher
+    from: dataset
+    target: publisher
+    order: 40
+    default: ""
+
+  # <publicationYear>2026</publicationYear>
+  # Handler tries ds.publicationDate first, falls back to version.publicationDate.
+  - source: _pub_year
+    from: dataset
+    target: publicationYear
+    order: 50
+    handler: publication_year
+
+  # <resourceType resourceTypeGeneral="Dataset"/>
+  - source: _resource_type
+    from: dataset
+    target: resourceType
+    order: 90
+    handler: resource_type_element
+
+  # --- Optional fields ---
+
+  # <dates>
+  #   <date dateType="Available">2026-04-16</date>
+  #   <date dateType="Updated">2026-04-17</date>
+  # </dates>
+  - source: _dates
+    from: dataset
+    target: dates
+    order: 80
+    handler: dataset_dates
+
+  # <sizes><size>62</size></sizes>
+  - source: _sizes
+    from: dataset
+    target: sizes
+    order: 100
+    handler: file_sizes
+
+  # <formats><format>text/markdown</format></formats>
+  - source: _formats
+    from: dataset
+    target: formats
+    order: 110
+    handler: file_formats
+
+  # <version>1.0</version>  (omitted for draft datasets)
+  - source: _version
+    from: dataset
+    target: version
+    order: 120
+    handler: dataset_version
+
+  # <rightsList>
+  #   <rights rightsURI="info:eu-repo/semantics/openAccess"/>
+  #   <rights rightsURI="http://creativecommons.org/...">CC0 1.0</rights>
+  # </rightsList>
+  - source: _rights
+    from: dataset
+    target: rightsList
+    order: 130
+    handler: rights_list

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<d1:systemMetadata xmlns:d1="http://ns.dataone.org/service/types/v1">
+  <identifier>doi:10.5072/FK2/1O97KH</identifier>
+  <formatId>http://datacite.org/schema/kernel-4</formatId>
+  <size>0</size>
+  <rightsHolder>LastAuthor1, FirstAuthor1</rightsHolder>
+  <accessPolicy>
+    <allow>
+      <subject>public</subject>
+      <permission>read</permission>
+    </allow>
+  </accessPolicy>
+  <replicationPolicy replicationAllowed="false"/>
+  <originMemberNode>urn:node:KNB</originMemberNode>
+  <authoritativeMemberNode>urn:node:KNB</authoritativeMemberNode>
+  <dateUploaded>2026-04-21T00:00:00Z</dateUploaded>
+  <dateSysMetadataModified>2026-04-21T00:00:00Z</dateSysMetadataModified>
+</d1:systemMetadata>

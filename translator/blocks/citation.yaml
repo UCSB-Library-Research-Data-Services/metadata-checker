@@ -1,0 +1,80 @@
+# blocks/citation.yaml
+#
+# Mappings for the Dataverse "citation" metadata block → DataCite XML.
+#
+# Field types used here:
+#   (default / no `type`)  — primitive: single value copied to a single element
+#   vocab_list             — controlled vocabulary: list of strings, one element each
+#   compound_list          — list of compound objects; `text_from` names the subfield
+#                            whose value becomes each element's text content
+#   (handler)              — complex transform delegated to a Python function in handlers.py
+#
+# `order` values must stay consistent with the DataCite kernel-4 element sequence.
+# See blocks/dataset.yaml for the fields that fill the gaps between citation fields.
+
+block: citation
+
+mappings:
+
+  # <creators>
+  #   <creator>
+  #     <creatorName nameType="Personal">Gray, Joshua</creatorName>
+  #     <givenName>Joshua</givenName>
+  #     <familyName>Gray</familyName>
+  #     <affiliation>University of California, Santa Barbara</affiliation>
+  #   </creator>
+  # </creators>
+  #
+  # Uses personal_name_entity to split "Last, First" names, infer nameType,
+  # and add optional affiliation.
+  - source: author
+    target: creators/creator
+    order: 20
+    handler: personal_name_entity
+    handler_config:
+      name_field: authorName
+      affiliation_field: authorAffiliation
+      datacite_role: creator
+
+  # <titles><title>UCSB DataSHORE scripting tests</title></titles>
+  - source: title
+    target: titles/title
+    order: 30
+
+  # <subjects>
+  #   <subject>Medicine, Health and Life Sciences</subject>
+  # </subjects>
+  - source: subject
+    target: subjects/subject
+    order: 60
+    type: vocab_list
+
+  # <contributors>
+  #   <contributor contributorType="ContactPerson">
+  #     <contributorName nameType="Personal">Gray, Joshua</contributorName>
+  #     <givenName>Joshua</givenName>
+  #     <familyName>Gray</familyName>
+  #   </contributor>
+  # </contributors>
+  #
+  # Dataset contacts map to contributorType="ContactPerson" — the closest DataCite
+  # equivalent. Contact email is intentionally dropped; DataCite has no email field.
+  - source: datasetContact
+    target: contributors/contributor
+    order: 70
+    handler: personal_name_entity
+    handler_config:
+      name_field: datasetContactName
+      datacite_role: contributor
+      contributor_type: ContactPerson
+
+  # <descriptions>
+  #   <description descriptionType="Abstract">Working on DataSHORE...</description>
+  # </descriptions>
+  - source: dsDescription
+    target: descriptions/description
+    order: 140
+    type: compound_list
+    attributes:
+      descriptionType: Abstract
+    text_from: dsDescriptionValue
