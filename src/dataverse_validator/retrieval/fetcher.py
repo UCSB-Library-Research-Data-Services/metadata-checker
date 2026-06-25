@@ -14,7 +14,12 @@ DB_NAME = "reports.db"
 
 #initializes sqlite databases
 def initialize_database(database_name):
-    conn = sqlite3.connect(database_name)
+
+    current_dir = Path(__file__).resolve().parent
+
+    db_path  = current_dir/ ".." / ".." / ".." / "data" / database_name
+
+    conn = sqlite3.connect(str(db_path))
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -60,6 +65,7 @@ def get_updated_datasets(root_dataverse, last_call_time, token, url):
             "type": "dataset",
             "subtree": root_dataverse,
             "per_page": per_page,
+            "fq":"publicationStatus:Draft",
             }
 
 

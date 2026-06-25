@@ -1,0 +1,9 @@
+.venv/
+venv/
+metadig/metadig-py/.venv/
+
+__pycache__/
+
+*.pyc
+*.pyo
+.env

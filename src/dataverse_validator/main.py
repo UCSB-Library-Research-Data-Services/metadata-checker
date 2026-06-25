@@ -26,6 +26,7 @@ from translation import translate, pretty_print
 from metadig import checks
 from metadig import suites
 
+from pathlib import Path
 
 
 logger = logging.getLogger(__name__)
@@ -79,6 +80,36 @@ def run_fair_checks(datacite_xml_path: str) -> dict:
     check(filename)
 """
 
+#note: sysmeta_path is a path to a dummy sysmeta file we don't actually need
+def run_metadig_engine(suite_file):
+    path_to_suite = Path(os.environ.get("METADIG_SUITE_PATH")) / suite_file
+
+
+    current_file = Path(__file__).resolve()
+    current_dir = current_file.parent
+    metadata_path = current_dir / ".." / ".." / "tmp" / "output.xml"
+
+    current_dir = current_file.parent
+    sysmeta_path = current_dir / ".." / ".." / "data" / "sysmeta_dummy.xml"
+
+    result = suites.run_suite(str(path_to_suite),
+                              str(os.environ.get("METADIG_CHECKS_PATH")),
+                              str(metadata_path),
+                              str(sysmeta_path)
+                              )
+    
+    return result
+
+def write_xml(xml_str):
+    current_file = Path(__file__).resolve()
+    current_dir = current_file.parent
+
+    target_folder = current_dir / ".." / ".." / "tmp" / "output.xml"
+
+
+    with open(target_folder, "w", encoding="utf-8") as f:
+        f.write(xml_str)
+
 
 
 
@@ -98,7 +129,11 @@ if __name__ == "__main__":
         for pid in dataset_pids:
             metadata = get_dataset_metadata(api, pid)
             root = translate(metadata)
-            print(pretty_print(root))
+            xml_str = pretty_print(root)
+            print(xml_str)
+            write_xml(xml_str)
+            result = run_metadig_engine("FAIR-suite-0.5.0.xml")
+            print(result)
     #print(get_dataset_metadata(api, pid))
     #translate("output.json");
     #check("output.xml")
