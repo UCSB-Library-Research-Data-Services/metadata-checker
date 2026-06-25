@@ -1,32 +1,35 @@
 from pyDataverse.api import NativeApi, DataAccessApi
-from pyDataverse.models import Dataset
-from pyDataverse.utils import read_file 
-from pyDataverse.utils import dataverse_tree_walker
+from pyDataverse.models import Dataset, Dataverse, Datafile
+from pyDataverse.utils import read_file, dataverse_tree_walker
+
+from xml.dom import minidom
+from xml.etree import ElementTree as ET
+
 from dotenv import load_dotenv
-from pyDataverse.models import Dataverse
 import os
-from pyDataverse.models import Datafile
 import time
 import argparse
 import logging
-import json
 
 import subprocess
 import json
 import tempfile
-import os
 
-from translator.translate import translate as json_to_datacite
-from translator.translate import pretty_print
+#from translator.translate import translate as json_to_datacite
+#from translator.translate import pretty_print
 
-from run_metadig import check
+#from run_metadig import check
+
+from retrieval import fetch
+from translation import translate, pretty_print
+
+from metadig import checks
+from metadig import suites
 
 
 
-
-load_dotenv()
 logger = logging.getLogger(__name__)
-
+load_dotenv()
 #Return (NativeAPI, DataAccessAPI) using .env credentials
 def connect():
     api = NativeApi(os.getenv("SERVER_URL"), os.getenv("API_TOKEN"))
@@ -45,9 +48,10 @@ def get_dataset_metadata(api, pid):
     print(f"Getting json metadata from dataverse withh pid {pid}")
     logger.debug("Getting json metadata from dataverse withh pid %s", pid)
     resp = api.get_dataset(pid, version=':draft', auth=True, is_pid = True)
-    print(json.dumps(resp.json(), indent=2))
-    with open("output.json", "w") as f:
-        json.dump(resp.json(), f, indent=2)
+    #print(json.dumps(resp.json(), indent=2))
+    #with open("output.json", "w") as f:
+        #json.dump(resp.json(), f, indent=2)
+    return resp.json()
 
 #for a published dataset (testing purposes)
 def export_dataset_metadata(api, pid, export="Datacite"):
@@ -59,6 +63,7 @@ def export_dataset_metadata(api, pid, export="Datacite"):
         f.write(resp.text)
 
 
+"""
 def translate(in_path):
     with open(in_path) as f:
         data = json.load(f)
@@ -70,45 +75,33 @@ def translate(in_path):
         f.write(xml_str)
     print(xml_str)
 
-
-
-
-
-
-
-
 def run_fair_checks(datacite_xml_path: str) -> dict:
     check(filename)
-
+"""
 
 
 
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--debug", action="store_true")
-    args = parser.parse_args()
-
-
-
-    logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.WARNING)
-
-    if args.debug:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
-
-
 
     api, data_api = connect()
-    pid = "https://doi.org/10.5072/FK2/50K5QA"
-    get_dataset_metadata(api, pid)
-    translate("output.json");
+
+    dataverse_url = os.environ.get("SERVER_URL")
+    api_token = os.environ.get("API_TOKEN")
+
+    dataset_pids = fetch("ucsb", dataverse_url, api_token)
+
+    if dataset_pids is None:
+        print("No new updated datasets")
+    else:
+        for pid in dataset_pids:
+            metadata = get_dataset_metadata(api, pid)
+            root = translate(metadata)
+            print(pretty_print(root))
+    #print(get_dataset_metadata(api, pid))
+    #translate("output.json");
     #check("output.xml")
-    #check_license("output.xml")
-    #check_doi("output.xml")
-    #check_date("output.xml")
-    check("output.xml")
+
     
 
