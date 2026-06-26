@@ -4,7 +4,6 @@ certifi==2026.6.17
 chardet==7.4.3
 charset-normalizer==3.4.7
 h11==0.16.0
-hashstore @ git+https://github.com/dataoneorg/hashstore.git@c11d5bc374ff958ac079c603682e6ceaa3737afa
 httpcore==1.0.9
 httpx==0.28.1
 idna==3.18
