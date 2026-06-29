@@ -14,7 +14,12 @@ DB_NAME = "reports.db"
 
 #initializes sqlite databases
 def initialize_database(database_name):
-    conn = sqlite3.connect(database_name)
+
+    current_dir = Path(__file__).resolve().parent
+
+    db_path  = current_dir/ ".." / ".." / ".." / "data" / database_name
+
+    conn = sqlite3.connect(str(db_path))
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -23,7 +28,6 @@ def initialize_database(database_name):
                         report TEXT NOT NULL,
                         PRIMARY KEY(id))
                     """)
-    print(f"{database_name} succesfully initialized")
 
 
     cursor.execute("""
@@ -32,44 +36,11 @@ def initialize_database(database_name):
                     PRIMARY KEY(last_check))
                     """)
 
+    print(f"{database_name} succesfully initialized")
+
     conn.commit()
     return conn
 
-
-#This function works for things that were created, but not drafts
-#def get_updated_datasets(root_dataverse, last_call_time):
-    #dt = datetime.strptime(last_call_time, "%Y-%m-%d %H:%M:%S")
-    #timestamp = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    #start = 0
-    #per_page = 1000
-    #all_datasets = []
-
-    #params = {
-            #"q": "*",
-            #"type": "dataset",
-            #"subtree": root_dataverse,
-            #"per_page": per_page,
-            #}
-
-    #if last_call_time is not None:
-        #params["fq"] = f"dateSort:[{timestamp} TO NOW]"
-        #print(timestamp)
-
-    #while True:
-        #params["start"] = start  # update start each iteration
-        #res = requests.get(f"{url}/api/search",
-                           #params=params,
-                           #headers={"X-Dataverse-key": token})
-
-        #data = res.json()["data"]
-        #all_datasets.extend(data["items"])  # accumulate results
-
-        #start += per_page
-        #if start >= data["total_count"]:
-            #break
-
-    #return all_datasets
 
 
 #takes in last call time(which was stored in the sqlite db) and the updatedAt time returned by the API call
@@ -83,7 +54,7 @@ def has_update(last_call_time, api_call_time):
 
 #return datasets that have had a draft updated since our last check at last_call_time
 #root_dataverse refers to the overall databerse being looked into (is recursive)
-def get_updated_datasets(root_dataverse, last_call_time):
+def get_updated_datasets(root_dataverse, last_call_time, token, url):
 
     start = 0
     per_page = 1000
@@ -94,6 +65,7 @@ def get_updated_datasets(root_dataverse, last_call_time):
             "type": "dataset",
             "subtree": root_dataverse,
             "per_page": per_page,
+            "fq":"publicationStatus:Draft",
             }
 
 
@@ -105,14 +77,17 @@ def get_updated_datasets(root_dataverse, last_call_time):
 
         data = res.json()["data"]
         for dataset in data["items"]:
-            if has_update(last_call_time, dataset["updatedAt"]):
+            
+            if last_call_time is not None:
+                if has_update(last_call_time, dataset["updatedAt"]):
+                    all_datasets.append(dataset)
+            else:
                 all_datasets.append(dataset)
 
         start += per_page
         if start >= data["total_count"]:
             break
 
-    print(all_datasets)
     return all_datasets
 
 
@@ -165,40 +140,45 @@ def update_latest_time(conn):
     conn.commit()
     print(f"Succesfully updated latest_time db to {current_time}")
 
+#takes in name of root dataverse, url of dataverse, and api_token
+#returns IDs of new datasets
+def fetch(root_name, dataverse_url, api_token):
 
-if __name__ == '__main__':
-    current_dir = Path(__file__).resolve().parent
-    parent_dir = current_dir.parent
-    dotenv_path = parent_dir/'.env'
-
-    load_dotenv(dotenv_path=dotenv_path)
-
-    url = os.getenv("SERVER_URL")
-    token = os.getenv("API_TOKEN")
     conn = initialize_database(DB_NAME)
 
     last_call_time = get_latest_time(conn)
 
 
+
     try:
-        datasets = get_updated_datasets("ucsb", last_call_time[0])
+
+        if last_call_time is None:
+            datasets = get_updated_datasets(root_name, None, api_token, dataverse_url)
+
+        else:
+            datasets = get_updated_datasets(root_name, last_call_time[0], api_token, dataverse_url)
+
+
+
+
 
         identifiers = []
+
         for dataset in datasets:
             identifiers.append(dataset['global_id'])
 
+
         if last_call_time is None:
             initialize_latest_time(conn)
+
         else:
             update_latest_time(conn)
 
-        print(identifiers)
-
+        return identifiers
 
 
     except Exception as E:
-        print("Error gettingresponse")
-        print(E)
+        print("Error fetching newly modified datasets")
 
     
 

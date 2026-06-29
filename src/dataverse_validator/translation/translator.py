@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-translate.py
+translator.py
 
 Core translation engine: Dataverse native API JSON → DataCite XML (kernel-4).
 
@@ -11,7 +11,7 @@ Do not modify this file for per-block work.
 
 USAGE
 -----
-    python3 translate.py <input.json> [output.xml]
+    python3 translator.py <input.json> [output.xml]
 
     If no output path is given, the XML is printed to stdout.
     If no input path is given, it defaults to output.json.
