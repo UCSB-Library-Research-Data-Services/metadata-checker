@@ -1,9 +1,15 @@
 .venv/
 venv/
 metadig/metadig-py/.venv/
+data/reports.db
+src/dataverse_validator/output.json
+tmp/
+
 
 __pycache__/
 
 *.pyc
 *.pyo
 .env
+
+
