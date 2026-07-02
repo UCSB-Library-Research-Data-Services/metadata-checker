@@ -189,6 +189,7 @@ def translate(data: dict) -> ET.Element:
     ET.register_namespace("", DATACITE_NS)
     ET.register_namespace("xsi", XSI_NS)
 
+    print(data)
     ds = data["data"]
     version = ds["latestVersion"]
 

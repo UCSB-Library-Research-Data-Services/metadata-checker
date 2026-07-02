@@ -20,8 +20,8 @@ import tempfile
 
 #from run_metadig import check
 
-from retrieval import fetch
-from translation import translate, pretty_print
+from .retrieval import fetch
+from .translation import translate, pretty_print
 
 from metadig import checks
 from metadig import suites
@@ -112,10 +112,7 @@ def write_xml(xml_str):
 
 
 
-
-
-if __name__ == "__main__":
-
+def run_pipeline():
     api, data_api = connect()
 
     dataverse_url = os.environ.get("SERVER_URL")
@@ -134,9 +131,27 @@ if __name__ == "__main__":
             write_xml(xml_str)
             result = run_metadig_engine("FAIR-suite-0.5.0.xml")
             print(result)
-    #print(get_dataset_metadata(api, pid))
-    #translate("output.json");
-    #check("output.xml")
 
+def fetch_metadata_report(dataset_pid):
+
+    api, data_api = connect()
+
+    dataverse_url = os.environ.get("SERVER_URL")
+    api_token = os.environ.get("API_TOKEN")
+
+
+    metadata = get_dataset_metadata(api, dataset_pid)
+    root = translate(metadata)
+    xml_str = pretty_print(root)
+    write_xml(xml_str)
+    result = run_metadig_engine("FAIR-suite-0.5.0.xml")
+    return json.loads(result)
     
+
+
+if __name__ == "__main__":
+    run_pipeline()
+
+
+
 

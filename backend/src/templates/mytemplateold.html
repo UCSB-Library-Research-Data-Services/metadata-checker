@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Metadata Report</title>
+    <link rel="stylesheet" href="/static/styles.css"/>
+</head>
+<body>
+    <h1>Metadata Report: {{dataset_id}}</h1>
+    <p>Engine run status: {{status}}</p>
+    {% for test in test_results %}
+        <div>
+            {{test.check_id}}: {{test.status}}
+        </div>
+    {% endfor %}
+</body>
+</html>

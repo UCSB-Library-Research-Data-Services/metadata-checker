@@ -1,0 +1,174 @@
+/* ---------------------------------------------------------
+   FAIR metadata report — /static/styles.css
+   White report sheet on cool slate, mono identifiers,
+   each check rendered as a status-coloured card.
+   --------------------------------------------------------- */
+
+:root {
+  --bg: #eef2f4;          /* pale slate page background */
+  --card: #ffffff;
+  --ink: #1b2733;         /* near-black text */
+  --muted: #5c6b7a;
+  --line: #dde4e9;
+  --accent: #0b7285;      /* deep teal — header rule + IDs */
+
+  --pass: #2b8a3e;
+  --pass-bg: #f3fbf4;
+  --pass-line: #c3e6cb;
+  --fail: #c92a2a;
+  --fail-bg: #fff6f6;
+  --fail-line: #f1c0c0;
+  --warn: #e67700;
+  --warn-bg: #fffbea;
+  --warn-line: #f3dfa8;
+  --skip: #5c6b7a;
+  --skip-bg: #f6f8f9;
+  --skip-line: #dde4e9;
+
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 3rem 1.25rem;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* The whole report sits on one sheet, like a printed lab report */
+.report {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--accent);
+  border-radius: 10px;
+  padding: 2rem 2.25rem 2.5rem;
+  box-shadow: 0 1px 3px rgba(27, 39, 51, 0.08);
+}
+
+/* ---- Header ------------------------------------------- */
+
+.report h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.dataset-id {
+  font-family: var(--mono);
+  font-size: 0.95em;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+
+.run-status {
+  margin: 0 0 1.5rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.run-status .pill {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--skip-bg);
+  color: var(--skip);
+}
+
+.run-status .pill.success,
+.run-status .pill.finished,
+.run-status .pill.completed { background: var(--pass-bg); color: var(--pass); }
+
+.run-status .pill.error,
+.run-status .pill.failed    { background: var(--fail-bg); color: var(--fail); }
+
+/* ---- Check cards ---------------------------------------
+   Each test is its own card: rounded border, subtle tinted
+   background, status badge pinned to the right. */
+
+.checks {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--skip-line);
+  border-radius: 8px;
+  background: var(--skip-bg);
+  transition: box-shadow 0.12s ease;
+}
+
+.check:hover {
+  box-shadow: 0 1px 4px rgba(27, 39, 51, 0.10);
+}
+
+.check .check-id {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+/* Status as a small badge on the card's right edge */
+.check .check-status {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid currentColor;
+  color: var(--skip);
+}
+
+/* Status colouring — needs class="check {{ test.status | lower }}"
+   in the template. Covers common validator vocabularies. */
+
+.check.pass, .check.passed, .check.success, .check.ok {
+  background: var(--pass-bg);
+  border-color: var(--pass-line);
+}
+.check.pass .check-status, .check.passed .check-status,
+.check.success .check-status, .check.ok .check-status { color: var(--pass); }
+
+.check.fail, .check.failed, .check.error {
+  background: var(--fail-bg);
+  border-color: var(--fail-line);
+}
+.check.fail .check-status, .check.failed .check-status,
+.check.error .check-status { color: var(--fail); }
+
+.check.warn, .check.warning {
+  background: var(--warn-bg);
+  border-color: var(--warn-line);
+}
+.check.warn .check-status, .check.warning .check-status { color: var(--warn); }
+
+.check.skip, .check.skipped, .check.na { color: var(--muted); }
+.check.skip .check-status, .check.skipped .check-status,
+.check.na .check-status { color: var(--skip); }
+
+/* ---- Small screens ------------------------------------- */
+
+@media (max-width: 480px) {
+  body { padding: 1rem 0.5rem; }
+  .report { padding: 1.25rem 1rem 1.5rem; }
+  .check { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
+}

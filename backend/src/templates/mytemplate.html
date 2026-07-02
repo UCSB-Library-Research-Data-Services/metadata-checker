@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Metadata Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <main class="report">
+        <h1>Metadata Report: <span class="dataset-id">{{ dataset_id }}</span></h1>
+        <p class="run-status">Engine run status:
+            <span class="pill {{ status | lower }}">{{ status }}</span>
+        </p>
+        <div class="checks">
+        {% for test in test_results %}
+            <div class="check {{ test.status | lower }}">
+                <span class="check-id">{{ test.check_id }}</span>
+                <span class="check-status">{{ test.status }}</span>
+            </div>
+        {% endfor %}
+        </div>
+    </main>
+</body>
+</html>
