@@ -7,18 +7,52 @@
 </head>
 <body>
     <main class="report">
-        <h1>Metadata Report: <span class="dataset-id">{{ dataset_id }}</span></h1>
-        <p class="run-status">Engine run status:
+        <h1>Dataset: <span class="dataset-info">{{ dataset_title }}</span></h1>
+        <h2>Persistent ID: <span class="dataset-info">{{ dataset_id }}</span></h2>
+        <h2>Dataset Version State: <span class="dataset-info">{{ version_state }}</span></h2>
+        <p class="run-status">Metadata check status:
             <span class="pill {{ status | lower }}">{{ status }}</span>
         </p>
+
+        <div class= "percentage">Metadata score: {{passed_checks * 100}}%</div>
+
+
+        <div class="progress-track">
+            <div class="progress-fill" style="width: {{passed_checks * 100}}%;"></div>
+        </div>
+
         <div class="checks">
-        {% for test in test_results %}
-            <div class="check {{ test.status | lower }}">
-                <span class="check-id">{{ test.check_id }}</span>
-                <span class="check-status">{{ test.status }}</span>
+            <div class="report-column">
+                <h1>Required tests: {{passed_required}} / {{total_required}}</h1>
+                {% for test in required_tests %}
+                    <div class="check {{ test.status | lower }}">
+                        <span class="check-id">{{ test.check_id }}</span>
+                        <span class="check-status">{{ test.status }}</span>
+                    </div>
+                {% endfor %}
             </div>
-        {% endfor %}
+
+            <div class="report-column">
+                <h1>Recommended Tests: {{passed_optional}} / {{total_optional}}</h1>
+                {% for test in optional_tests %}
+                    <div class="check {{ test.status | lower }}">
+                        <span class="check-id">{{ test.check_id }}</span>
+                        <span class="check-status">{{ test.status }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="report-column">
+                <h1>Optional insights: {{passed_information}} / {{total_information}}</h1>
+                {% for test in information_tests %}
+                    <div class="check {{ test.status | lower }}">
+                        <span class="check-id">{{ test.check_id }}</span>
+                        <span class="check-status">{{ test.status }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+
         </div>
     </main>
 </body>
-</html>
+</html
