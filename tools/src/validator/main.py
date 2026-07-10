@@ -148,6 +148,16 @@ def fetch_metadata_report(dataset_pid):
     print(result)
     return (metadata, json.loads(result))
 
+
+async def run_metadata_report(metadata):
+    root = translate(metadata)
+    xml_str = pretty_print(root)
+    write_xml(xml_str)
+    result = run_metadig_engine("FAIR-suite-0.5.0.xml")
+    print(result)
+    return json.loads(result)
+
+
     
 
 

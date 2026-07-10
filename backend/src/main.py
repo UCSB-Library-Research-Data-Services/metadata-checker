@@ -1,9 +1,12 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from validator import fetch_metadata_report 
+from validator import fetch_metadata_report, run_metadata_report
 from jinja2 import Environment, PackageLoader, select_autoescape
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
+import base64
+from typing import Optional
+import httpx
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -160,20 +163,48 @@ def get_title(metadata):
 def get_version_state(metadata):
     return metadata['data']['latestVersion']['versionState']
 
+def get_persistent_id(metadata):
+    return metadata['data']['identifier']
 
 
 
-@app.get("/")
-async def root():
-    #return template.render(name_variable="josh")
-    return {"Status":"Succesfully connected"}
 
-@app.get("/metadata-report/{dataset_pid:path}", response_class=HTMLResponse)
-async def get_metadata_report(dataset_pid:str):
-    metadata, validation_report = fetch_metadata_report(dataset_pid)
+async def get_metadata(callback):
+    decoded_url = base64.b64decode(callback).decode("utf-8")
+    async with httpx.AsyncClient() as client:
+        try:
+            res = await client.get(decoded_url)
+            res.raise_for_status()
+            json_manifest = res.json()           
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(status_code=502, detail=f"Dataverse callback failed")
 
-    #return validation_report
-    #test_results = validation_report["results"]
+    signed_urls = json_manifest['data']['signedUrls']
+    metadata_api_request = next((call for call in signed_urls if call['name'] == 'retrieveDatasetMetadata'), None)
+
+    async with httpx.AsyncClient() as client:
+        try:
+            res = await client.get(metadata_api_request['signedUrl'])
+            res.raise_for_status()
+            return res.json()
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(status_code=502, detail=f"Metadata retreival failed")
+
+
+async def get_json(callback):
+    decoded_url = base64.b64decode(callback).decode("utf-8")
+    async with httpx.AsyncClient() as client:
+        try:
+            res = await client.get(decoded_url)
+            res.raise_for_status()
+            return res.json()
+            
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(status_code=502, detail=f"Dataverse callback failed")
+
+
+async def render_dashboard(metadata, validation_report):
+
     status = validation_report["run_status"]
     test_results = validation_report["results"]
 
@@ -183,12 +214,15 @@ async def get_metadata_report(dataset_pid:str):
     information_tests = []
 
 
+    #used for stats
     passed_checks = 0
-
     passed_required = 0
     passed_optional = 0
     passed_information = 0
 
+
+
+    #sort into three lists, get stats
     for test in test_results:
         if test['check_id'].removesuffix('.xml') in REQUIRED_CHECKS_NAMES:
             required_tests.append({'check_id': HUMAN_READABLE_NAMES[test['check_id'].removesuffix('.xml')],
@@ -216,17 +250,15 @@ async def get_metadata_report(dataset_pid:str):
             passed_checks += 1
 
 
-    #return fetch_metadata_report(dataset_pid)
-    #return validation_report
 
     description = get_description(metadata)
     title = get_title(metadata)
     version_state = get_version_state(metadata)
+    persistent_id = get_persistent_id(metadata)
 
 
-    print(passed_checks/len(test_results))
 
-    return template.render(dataset_id=dataset_pid,
+    return template.render(dataset_id=persistent_id,
                            status=status,
                            required_tests = required_tests, 
                            optional_tests = optional_tests,
@@ -242,5 +274,28 @@ async def get_metadata_report(dataset_pid:str):
                            total_information = len(information_tests)
                            )
     
+
+
+@app.get("/")
+async def root():
+    #return template.render(name_variable="josh")
+    return {"Status":"Succesfully connected"}
+
+@app.get("/metadata-report", response_class=HTMLResponse)
+#@app.get("/metadata-report")
+async def get_metadata_report( callback:str, locale: str,datasetPid: Optional[str]=None):
+
+
+
+    #json = await get_json(callback)
+    #return json
+    #metadata, validation_report = fetch_metadata_report(pid)
+    metadata = await get_metadata(callback)
+    validation_report = await run_metadata_report(metadata)
+
+    return await render_dashboard(metadata, validation_report)
+
+
+
 
 

@@ -1,0 +1,26 @@
+{
+  "displayName": "Metadata Checker",
+  "description": "Runs FAIR compliance checks on this dataset",
+  "toolName": "metadata-checker",
+  "scope": "dataset",
+  "types": [
+    "explore"
+  ],
+  "toolUrl":"http://127.0.0.1:8000/metadata-report",
+  "httpMethod":"GET",
+  "toolParameters": {
+    "queryParameters": [
+      {"datasetPid": "{datasetPid}"},
+      {"locale": "{localeCode}"}
+
+    ]
+  },
+  "allowedApiCalls": [
+    {
+      "name":"retrieveDatasetMetadata",
+      "httpMethod":"GET",
+      "urlTemplate":"/api/v1/datasets/{datasetId}",
+      "timeOut":60
+    }
+  ]
+}
