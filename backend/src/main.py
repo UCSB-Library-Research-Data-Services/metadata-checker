@@ -284,9 +284,6 @@ async def root():
 @app.get("/metadata-report", response_class=HTMLResponse)
 #@app.get("/metadata-report")
 async def get_metadata_report( callback:str, locale: str,datasetPid: Optional[str]=None):
-
-
-
     #json = await get_json(callback)
     #return json
     #metadata, validation_report = fetch_metadata_report(pid)

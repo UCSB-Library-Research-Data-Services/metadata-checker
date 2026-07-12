@@ -15,6 +15,8 @@ import subprocess
 import json
 import tempfile
 
+import sqlite3
+
 #from translator.translate import translate as json_to_datacite
 #from translator.translate import pretty_print
 
@@ -31,6 +33,8 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 load_dotenv()
+
+DB_NAME = "reports.db"
 #Return (NativeAPI, DataAccessAPI) using .env credentials
 def connect():
     api = NativeApi(os.getenv("SERVER_URL"), os.getenv("API_TOKEN"))
@@ -112,6 +116,7 @@ def write_xml(xml_str):
 
 
 
+#runs the metadata checker on the newly updated datasts
 def run_pipeline():
     api, data_api = connect()
 
@@ -132,6 +137,7 @@ def run_pipeline():
             result = run_metadig_engine("FAIR-suite-0.5.0.xml")
             print(result)
 
+#Runs report using an API token
 def fetch_metadata_report(dataset_pid):
 
     api, data_api = connect()
@@ -149,13 +155,64 @@ def fetch_metadata_report(dataset_pid):
     return (metadata, json.loads(result))
 
 
+def cache_report(dataset_id, report):
+    #initialize database if not already
+
+    current_dir = Path(__file__).resolve().parent
+
+    db_path  = current_dir/ ".." / ".." / "data" / DB_NAME
+
+    conn = sqlite3.connect(str(db_path))
+    cursor = conn.cursor()
+
+    cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS datasets(
+                        dataset_id TEXT,
+                        report TEXT NOT NULL,
+                        PRIMARY KEY(dataset_id))
+                    """)
+
+    #check if we already have a report cached in the database
+
+    cursor.execute("""
+                    SELECT *
+                    FROM datasets
+                    WHERE dataset_id = ?
+                    """,
+                   (dataset_id,)
+                   )
+    if cursor.fetchone() is None:
+        #insert report into database
+        cursor.execute("""
+                        INSERT INTO datasets (dataset_id, report)
+                        VALUES (?, ?)
+                        """,
+                       (dataset_id, report)
+                       )
+    else:
+        #update already existing dataset
+        cursor.execute("""
+                        UPDATE datasets
+                        SET report = ?
+                        WHERE dataset_id = ?
+                        """,
+                       (report, dataset_id)
+                       )
+
+    conn.commit()
+    print(f"Succesfully cached database report")
+
+
+#Runs report based on a metadata retrieved by a signed URL, used by FastAPI
 async def run_metadata_report(metadata):
     root = translate(metadata)
     xml_str = pretty_print(root)
     write_xml(xml_str)
     result = run_metadig_engine("FAIR-suite-0.5.0.xml")
-    print(result)
+    identifier = metadata['data']['identifier']
+    cache_report(identifier,  json.dumps(result))
     return json.loads(result)
+
 
 
     
