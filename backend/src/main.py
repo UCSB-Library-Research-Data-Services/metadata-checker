@@ -8,6 +8,16 @@ import base64
 from typing import Optional
 import httpx
 
+import json
+from pydantic import BaseModel
+
+class RefreshBody(BaseModel):
+    dataset_pid: str
+    callback: str
+
+
+import sqlite3
+
 BASE_DIR = Path(__file__).resolve().parent
 
 env = Environment(
@@ -16,10 +26,13 @@ env = Environment(
     )
 
 template = env.get_template("mytemplate.html")
+empty_dashboard = env.get_template("empty_dashboard.html")
 
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+
+DB_NAME = "reports.db"
 
 
 REQUIRED_CHECKS_NAMES = {
@@ -203,6 +216,8 @@ async def get_json(callback):
             raise HTTPException(status_code=502, detail=f"Dataverse callback failed")
 
 
+
+
 async def render_dashboard(metadata, validation_report):
 
     status = validation_report["run_status"]
@@ -275,6 +290,95 @@ async def render_dashboard(metadata, validation_report):
                            )
     
 
+#Connect to sqlite3 database and initialize datasets table, returns connection
+def connect_to_database():
+
+    current_dir = Path(__file__).resolve().parent
+
+    db_path  = current_dir/ ".." / "data" / DB_NAME
+
+    conn = sqlite3.connect(str(db_path))
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS datasets(
+                        dataset_id TEXT,
+                        metadata TEXT NOT NULL,
+                        report TEXT NOT NULL,
+                        PRIMARY KEY(dataset_id))
+                    """)
+
+
+    return conn
+
+
+
+#takes in metadata and metadata report, caches it into the sqlite database
+def cache_report(conn, dataset_id, metadata, report):
+    #initialize database if not already
+    cursor = conn.cursor()
+
+    #check if we already have a report cached in the database
+
+    cursor.execute("""
+                    SELECT *
+                    FROM datasets
+                    WHERE dataset_id = ?
+                    """,
+                   (dataset_id,)
+                   )
+
+    if cursor.fetchone() is None:
+        #insert report into database
+        cursor.execute("""
+                        INSERT INTO datasets (dataset_id, metadata, report)
+                        VALUES (?, ?, ?)
+                        """,
+                       (dataset_id, json.dumps(metadata), json.dumps(report))
+                       )
+    else:
+        #update already existing dataset
+        cursor.execute("""
+                        UPDATE datasets
+                        SET metadata = ?,
+                            report = ?,
+                        WHERE dataset_id = ?
+                        """,
+                       (json.dumps(report), json.dumps(dataset_id))
+                       )
+
+    conn.commit()
+    print(f"Succesfully cached database report")
+
+
+#Takes in a dataset id
+#If there exists a report, returns a tuple of (metadata, report)
+#Otherwise returns None
+def fetch_cached_report(conn, dataset_id):
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+                    SELECT *
+                    FROM datasets
+                    WHERE dataset_id = ?
+                    """,
+                   (dataset_id,)
+                   )
+
+    row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    return (json.loads(row[1]), json.loads(row[2]))
+
+
+
+
+
+
 
 @app.get("/")
 async def root():
@@ -282,17 +386,42 @@ async def root():
     return {"Status":"Succesfully connected"}
 
 @app.get("/metadata-report", response_class=HTMLResponse)
-#@app.get("/metadata-report")
-async def get_metadata_report( callback:str, locale: str,datasetPid: Optional[str]=None):
-    #json = await get_json(callback)
-    #return json
-    #metadata, validation_report = fetch_metadata_report(pid)
-    metadata = await get_metadata(callback)
-    validation_report = await run_metadata_report(metadata)
+async def get_metadata_report( callback:str, locale: str):
+    #metadata = await get_metadata(callback)
+    #validation_report = await run_metadata_report(metadata)
 
+    conn = connect_to_database()
+
+    callback_response = await get_json(callback)
+
+    if callback_response:
+        dataset_pid = callback_response['data']['queryParameters']['datasetPid']
+
+    else:
+        dataset_pid = None
+
+
+    cached_report_info = fetch_cached_report(conn, dataset_pid)
+    if cached_report_info is None:
+        return empty_dashboard.render(dataset_id=dataset_pid, callback=callback)
+
+    metadata, validation_report = cached_report_info 
     return await render_dashboard(metadata, validation_report)
 
 
 
+
+@app.post("/api/load-new-report")
+async def load_new_report(refreshBody: RefreshBody):
+    metadata = await get_metadata(refreshBody.callback)
+    validation_report = await run_metadata_report(metadata)
+
+    conn = connect_to_database()
+
+    cache_report(conn, refreshBody.dataset_pid, metadata, validation_report)
+
+    #return await render_dashboard(metadata, validation_report)
+
+    return {"message":"succesfully ran and cached new report"}
 
 

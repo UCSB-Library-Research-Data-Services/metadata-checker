@@ -204,6 +204,7 @@ def cache_report(dataset_id, report):
 
 
 #Runs report based on a metadata retrieved by a signed URL, used by FastAPI
+#Takes in metadata, returns metadig report
 async def run_metadata_report(metadata):
     root = translate(metadata)
     xml_str = pretty_print(root)

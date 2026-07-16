@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Metadata Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <main class="report">
+        <h1>No metadata runs for dataset <span class="dataset-info">{{ dataset_id }} </span>yet</h1>
+        <div id='status-message'></div>
+        <button id="run-report-button">Re-run report</button>
+
+    <script>
+        document.getElementById('run-report-button').addEventListener('click', async function() {
+            const button = this;
+            const statusMessage = document.getElementById('status-message');
+            
+            // Disable button and show loading state
+            button.disabled = true;
+            statusMessage.style.color = "orange";
+            statusMessage.textContent = "Running report & updating database...";
+
+            try {
+
+                // Send POST request to FastAPI to execute report logic
+
+                const payload = {
+                    dataset_pid: {{dataset_id | tojson}},
+                    callback: {{callback | tojson}}
+
+                };
+
+                const response = await fetch('/api/load-new-report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    statusMessage.style.color = "green";
+                    statusMessage.textContent = "Database updated! Reloading page...";
+                    
+                    // Reload the page after a brief pause so Jinja pulls the updated row from SQLite
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 800);
+                } else {
+                    statusMessage.style.color = "red";
+                    statusMessage.textContent = `Error: ${result.message}`;
+                    button.disabled = false;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                statusMessage.style.color = "red";
+                statusMessage.textContent = "Network error. Failed to reach server.";
+                button.disabled = false;
+            }
+        });
+    </script>
+    </main>
+</body>
+</html
