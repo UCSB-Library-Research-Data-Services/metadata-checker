@@ -5,11 +5,14 @@ import sys
 from pathlib import Path
 import sqlite3
 from datetime import datetime, timezone
+import logging
 
 
 
 
 DB_NAME = "reports.db"
+
+logger = logging.getLogger(__name__)
 
 
 #initializes sqlite databases
@@ -177,8 +180,9 @@ def fetch(root_name, dataverse_url, api_token):
         return identifiers
 
 
-    except Exception as E:
-        print("Error fetching newly modified datasets")
+    except Exception:
+        logging.exception("Error fetching newly modified datasets")
+        raise
 
     
 

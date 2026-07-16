@@ -1,5 +1,5 @@
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse 
 from validator import fetch_metadata_report, run_metadata_report
 from jinja2 import Environment, PackageLoader, select_autoescape
 from fastapi.staticfiles import StaticFiles
@@ -7,7 +7,6 @@ from pathlib import Path
 import base64
 from typing import Optional
 import httpx
-
 import json
 from pydantic import BaseModel
 
@@ -160,24 +159,26 @@ HUMAN_READABLE_NAMES = {
 }
 
 def get_description(metadata):
-    fields = metadata['data']['latestVersion']['metadataBlocks']['citation']['fields']
-    description_field = next((f for f in fields if f['typeName'] == 'dsDescription'), None)
+    fields = metadata.get('data', {}).get('latestVersion', {}).get('metadataBlocks', {}).get('citation', {}).get('fields', [])
+    description_field = next((f for f in fields if f.get('typeName') == 'dsDescription'), None)
     if description_field:
-        return description_field['value'][0]['dsDescriptionValue']['value']
+        values = description_field.get('value', [])
+        if values:
+            return values[0].get('dsDescriptionValue', {}).get('value', "No description found")
     return "No description found"
 
 def get_title(metadata):
-    fields = metadata['data']['latestVersion']['metadataBlocks']['citation']['fields']
-    title_field = next((f for f in fields if f['typeName'] == 'title'), None)
+    fields = metadata.get('data', {}).get('latestVersion', {}).get('metadataBlocks', {}).get('citation', {}).get('fields', [])
+    title_field = next((f for f in fields if f.get('typeName') == 'title'), None)
     if title_field:
-        return title_field['value']
+        return title_field.get('value', "No title found")
     return "No title found"
 
 def get_version_state(metadata):
-    return metadata['data']['latestVersion']['versionState']
+    return metadata.get('data', {}).get('latestVersion', {}).get('versionState', "No version found")
 
 def get_persistent_id(metadata):
-    return metadata['data']['identifier']
+    return metadata.get('data', {}).get('identifier', "No identifier found")
 
 
 
@@ -240,7 +241,7 @@ async def render_dashboard(metadata, validation_report):
     #sort into three lists, get stats
     for test in test_results:
         if test['check_id'].removesuffix('.xml') in REQUIRED_CHECKS_NAMES:
-            required_tests.append({'check_id': HUMAN_READABLE_NAMES[test['check_id'].removesuffix('.xml')],
+            required_tests.append({'check_id': HUMAN_READABLE_NAMES.get(test['check_id'].removesuffix('.xml'), test['check_id'].removesuffix('.xml')),
                                    'status': test['status']
                                    })
 
@@ -248,14 +249,14 @@ async def render_dashboard(metadata, validation_report):
                 passed_required += 1
 
         if test['check_id'].removesuffix('.xml') in OPTIONAL_CHECKS_NAMES:
-            optional_tests.append({'check_id': HUMAN_READABLE_NAMES[test['check_id'].removesuffix('.xml')],
+            optional_tests.append({'check_id': HUMAN_READABLE_NAMES.get(test['check_id'].removesuffix('.xml'), test['check_id'].removesuffix('.xml')),
                                    'status': test['status']
                                    })
             if test['status'] == 'SUCCESS':
                 passed_optional += 1
 
         if test['check_id'].removesuffix('.xml') in INFORMATION_CHECKS_NAMES:
-            information_tests.append({'check_id': HUMAN_READABLE_NAMES[test['check_id'].removesuffix('.xml')],
+            information_tests.append({'check_id': HUMAN_READABLE_NAMES.get(test['check_id'].removesuffix('.xml'), test['check_id'].removesuffix('.xml')),
                                    'status': test['status']
                                    })
             if test['status'] == 'SUCCESS':
@@ -322,31 +323,14 @@ def cache_report(conn, dataset_id, metadata, report):
     #check if we already have a report cached in the database
 
     cursor.execute("""
-                    SELECT *
-                    FROM datasets
-                    WHERE dataset_id = ?
-                    """,
-                   (dataset_id,)
-                   )
+                    INSERT INTO datasets (dataset_id, metadata, report)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT (dataset_id)
+                    DO UPDATE SET metadata=?, report=?
+                   """,
+                   (dataset_id, json.dumps(metadata), json.dumps(report), json.dumps(metadata), json.dumps(report)))
 
-    if cursor.fetchone() is None:
-        #insert report into database
-        cursor.execute("""
-                        INSERT INTO datasets (dataset_id, metadata, report)
-                        VALUES (?, ?, ?)
-                        """,
-                       (dataset_id, json.dumps(metadata), json.dumps(report))
-                       )
-    else:
-        #update already existing dataset
-        cursor.execute("""
-                        UPDATE datasets
-                        SET metadata = ?,
-                            report = ?,
-                        WHERE dataset_id = ?
-                        """,
-                       (json.dumps(report), json.dumps(dataset_id))
-                       )
+
 
     conn.commit()
     print(f"Succesfully cached database report")
