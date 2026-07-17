@@ -112,8 +112,8 @@ body {
 
 .checks {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
   align-items: start;
 
 }
@@ -121,9 +121,10 @@ body {
 .report-column {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     padding: 15px;
     border-radius: 8px;
+    min-width: 0;
 }
 
 /* The outer container (the gray track) */
@@ -153,11 +154,10 @@ body {
   overflow-wrap: anywhere;
 }
 .check {
-  display: block;
-  padding: 0.8rem 1rem;
   border: 1px solid var(--skip-line);
   border-radius: 8px;
   background: var(--skip-bg);
+  min-width: 0;
   transition: box-shadow 0.12s ease;
 }
 
@@ -165,73 +165,73 @@ body {
   box-shadow: 0 1px 4px rgba(27, 39, 51, 0.10);
 }
 
-.check-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.check-toggle {
-  flex: 0 0 auto;
-  width: 1.4rem;
-  height: 1.4rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  font-weight: 700;
-  line-height: 1;
+/* Front/back faces are stacked in the same grid cell, so the card's
+   height always fits whichever face is taller and clicking through
+   is a plain crossfade — no reflow, no resize, no jump. */
+.check-flip {
+  display: grid;
+  padding: 0.8rem 1rem;
   cursor: pointer;
 }
 
-.check-toggle:hover,
-.check-toggle:focus-visible {
-  border-color: var(--accent);
-  color: var(--accent);
+.check-flip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 8px;
 }
 
-.check-toggle[aria-expanded="true"] {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+.check-face {
+  grid-area: 1 / 1;
+  min-width: 0;
+  align-self: center;
+  transition: opacity 0.18s ease;
 }
 
-.check-detail {
-  margin-top: 0.6rem;
-  padding-top: 0.6rem;
-  border-top: 1px dashed var(--line);
+.check-front {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.check-front-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.check-back {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  opacity: 0;
+  pointer-events: none;
   font-size: 0.85rem;
   color: var(--ink);
 }
 
-.check-detail[hidden] {
-  display: none;
+.check-flip[aria-expanded="true"] .check-front {
+  opacity: 0;
+  pointer-events: none;
 }
 
-.check-detail .check-description {
-  margin: 0 0 0.4rem;
+.check-flip[aria-expanded="true"] .check-back {
+  opacity: 1;
+  pointer-events: auto;
 }
 
-.check-detail .check-output {
-  margin: 0;
-  color: var(--muted);
-}
-
-.check .check-id {
+.check-id {
+  flex: 1 1 auto;
+  min-width: 0;
   font-family: var(--mono);
   font-size: 0.85rem;
-  flex: 1;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
-/* Status as a small badge on the card's right edge */
-.check .check-status {
+.check-status {
+  flex: 0 0 auto;
   font-family: var(--mono);
   font-size: 0.72rem;
   font-weight: 700;
@@ -243,6 +243,21 @@ body {
   background: #fff;
   border: 1px solid currentColor;
   color: var(--skip);
+}
+
+.check-hint {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.check-back .check-description,
+.check-back .check-output {
+  margin: 0;
+}
+
+.check-back .check-output {
+  color: var(--muted);
 }
 
 /* Status colouring — needs class="check {{ test.status | lower }}"

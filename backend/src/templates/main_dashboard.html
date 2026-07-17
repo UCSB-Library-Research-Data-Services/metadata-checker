@@ -84,16 +84,21 @@
                 <h1>Required tests: {{passed_required}} / {{total_required}}</h1>
                 {% for test in required_tests %}
                     <div class="check {{ test.status | lower }}">
-                        <div class="check-row">
-                            <span class="check-id">{{ test.check_id }}</span>
-                            <button type="button" class="check-toggle" aria-expanded="false" aria-label="Show details for {{ test.check_id }}">?</button>
-                            <span class="check-status">{{ test.status }}</span>
-                        </div>
-                        <div class="check-detail" hidden>
-                            <p class="check-description">{{ test.description }}</p>
-                            {% if test.output %}
-                            <p class="check-output"><strong>Result:</strong> {{ test.output }}</p>
-                            {% endif %}
+                        <div class="check-flip" role="button" tabindex="0" aria-expanded="false" aria-label="Show details for {{ test.check_id }}">
+                            <div class="check-face check-front">
+                                <div class="check-front-row">
+                                    <span class="check-id">{{ test.check_id }}</span>
+                                    <span class="check-status">{{ test.status }}</span>
+                                </div>
+                                <span class="check-hint">Tap for details</span>
+                            </div>
+                            <div class="check-face check-back">
+                                <p class="check-description">{{ test.description }}</p>
+                                {% if test.output %}
+                                <p class="check-output"><strong>Result:</strong> {{ test.output }}</p>
+                                {% endif %}
+                                <span class="check-hint">Tap to go back</span>
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
@@ -103,16 +108,21 @@
                 <h1>Recommended Tests: {{passed_optional}} / {{total_optional}}</h1>
                 {% for test in optional_tests %}
                     <div class="check {{ test.status | lower }}">
-                        <div class="check-row">
-                            <span class="check-id">{{ test.check_id }}</span>
-                            <button type="button" class="check-toggle" aria-expanded="false" aria-label="Show details for {{ test.check_id }}">?</button>
-                            <span class="check-status">{{ test.status }}</span>
-                        </div>
-                        <div class="check-detail" hidden>
-                            <p class="check-description">{{ test.description }}</p>
-                            {% if test.output %}
-                            <p class="check-output"><strong>Result:</strong> {{ test.output }}</p>
-                            {% endif %}
+                        <div class="check-flip" role="button" tabindex="0" aria-expanded="false" aria-label="Show details for {{ test.check_id }}">
+                            <div class="check-face check-front">
+                                <div class="check-front-row">
+                                    <span class="check-id">{{ test.check_id }}</span>
+                                    <span class="check-status">{{ test.status }}</span>
+                                </div>
+                                <span class="check-hint">Tap for details</span>
+                            </div>
+                            <div class="check-face check-back">
+                                <p class="check-description">{{ test.description }}</p>
+                                {% if test.output %}
+                                <p class="check-output"><strong>Result:</strong> {{ test.output }}</p>
+                                {% endif %}
+                                <span class="check-hint">Tap to go back</span>
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
@@ -122,16 +132,21 @@
                 <h1>Optional insights: {{passed_information}} / {{total_information}}</h1>
                 {% for test in information_tests %}
                     <div class="check {{ test.status | lower }}">
-                        <div class="check-row">
-                            <span class="check-id">{{ test.check_id }}</span>
-                            <button type="button" class="check-toggle" aria-expanded="false" aria-label="Show details for {{ test.check_id }}">?</button>
-                            <span class="check-status">{{ test.status }}</span>
-                        </div>
-                        <div class="check-detail" hidden>
-                            <p class="check-description">{{ test.description }}</p>
-                            {% if test.output %}
-                            <p class="check-output"><strong>Result:</strong> {{ test.output }}</p>
-                            {% endif %}
+                        <div class="check-flip" role="button" tabindex="0" aria-expanded="false" aria-label="Show details for {{ test.check_id }}">
+                            <div class="check-face check-front">
+                                <div class="check-front-row">
+                                    <span class="check-id">{{ test.check_id }}</span>
+                                    <span class="check-status">{{ test.status }}</span>
+                                </div>
+                                <span class="check-hint">Tap for details</span>
+                            </div>
+                            <div class="check-face check-back">
+                                <p class="check-description">{{ test.description }}</p>
+                                {% if test.output %}
+                                <p class="check-output"><strong>Result:</strong> {{ test.output }}</p>
+                                {% endif %}
+                                <span class="check-hint">Tap to go back</span>
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
