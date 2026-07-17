@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Metadata Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <main class="report">
+        <h1>Dataset: <span class="dataset-info">{{ dataset_title }}</span></h1>
+        <h2>Persistent ID: <span class="dataset-info">{{ dataset_id }}</span></h2>
+        <h2>Dataset Version State: <span class="dataset-info">{{ version_state }}</span></h2>
+
+
+
+        <div id='status-message'></div>
+        <button id="run-report-button">Re-run report</button>
+
+    <script>
+        document.getElementById('run-report-button').addEventListener('click', async function() {
+            const button = this;
+            const statusMessage = document.getElementById('status-message');
+            
+            // Disable button and show loading state
+            button.disabled = true;
+            statusMessage.style.color = "orange";
+            statusMessage.textContent = "Running report & updating database...";
+
+            try {
+
+                // Send POST request to FastAPI to execute report logic
+
+                const payload = {
+                    dataset_pid: {{dataset_id | tojson}},
+                    callback: {{callback | tojson}}
+
+                };
+
+                const response = await fetch('/api/load-new-report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    statusMessage.style.color = "green";
+                    statusMessage.textContent = "Database updated! Reloading page...";
+                    
+                    // Reload the page after a brief pause so Jinja pulls the updated row from SQLite
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 800);
+                } else {
+                    statusMessage.style.color = "red";
+                    statusMessage.textContent = `Error: ${result.message}`;
+                    button.disabled = false;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                statusMessage.style.color = "red";
+                statusMessage.textContent = "Network error. Failed to reach server.";
+                button.disabled = false;
+            }
+        });
+    </script>
+
+
+        <p class="run-status">Metadata check status:
+            <span class="pill {{ status | lower }}">{{ status }}</span>
+        </p>
+
+        <div class= "percentage">Metadata score: {{passed_checks * 100}}%</div>
+
+
+        <div class="progress-track">
+            <div class="progress-fill" style="width: {{passed_checks * 100}}%;"></div>
+        </div>
+
+        <div class="checks">
+            <div class="report-column">
+                <h1>Required tests: {{passed_required}} / {{total_required}}</h1>
+                {% for test in required_tests %}
+                    <div class="check {{ test.status | lower }}">
+                        <span class="check-id">{{ test.check_id }}</span>
+                        <span class="check-status">{{ test.status }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="report-column">
+                <h1>Recommended Tests: {{passed_optional}} / {{total_optional}}</h1>
+                {% for test in optional_tests %}
+                    <div class="check {{ test.status | lower }}">
+                        <span class="check-id">{{ test.check_id }}</span>
+                        <span class="check-status">{{ test.status }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="report-column">
+                <h1>Optional insights: {{passed_information}} / {{total_information}}</h1>
+                {% for test in information_tests %}
+                    <div class="check {{ test.status | lower }}">
+                        <span class="check-id">{{ test.check_id }}</span>
+                        <span class="check-status">{{ test.status }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+
+        </div>
+
+    </main>
+</body>
+</html

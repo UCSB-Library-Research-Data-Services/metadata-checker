@@ -24,7 +24,7 @@ env = Environment(
         autoescape=select_autoescape()
     )
 
-template = env.get_template("mytemplate.html")
+main_dashboard = env.get_template("main_dashboard.html")
 empty_dashboard = env.get_template("empty_dashboard.html")
 
 app = FastAPI()
@@ -219,7 +219,7 @@ async def get_json(callback):
 
 
 
-async def render_dashboard(metadata, validation_report):
+async def render_dashboard(metadata, validation_report, callback):
 
     status = validation_report["run_status"]
     test_results = validation_report["results"]
@@ -274,7 +274,7 @@ async def render_dashboard(metadata, validation_report):
 
 
 
-    return template.render(dataset_id=persistent_id,
+    return main_dashboard.render(dataset_id=persistent_id,
                            status=status,
                            required_tests = required_tests, 
                            optional_tests = optional_tests,
@@ -287,7 +287,8 @@ async def render_dashboard(metadata, validation_report):
                            passed_optional = passed_optional,
                            total_optional = len(optional_tests),
                            passed_information = passed_information,
-                           total_information = len(information_tests)
+                           total_information = len(information_tests),
+                           callback=callback
                            )
     
 
@@ -390,7 +391,7 @@ async def get_metadata_report( callback:str, locale: str):
         return empty_dashboard.render(dataset_id=dataset_pid, callback=callback)
 
     metadata, validation_report = cached_report_info 
-    return await render_dashboard(metadata, validation_report)
+    return await render_dashboard(metadata, validation_report, callback)
 
 
 
