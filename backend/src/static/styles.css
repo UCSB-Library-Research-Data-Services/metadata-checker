@@ -153,9 +153,7 @@ body {
   overflow-wrap: anywhere;
 }
 .check {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  display: block;
   padding: 0.8rem 1rem;
   border: 1px solid var(--skip-line);
   border-radius: 8px;
@@ -165,6 +163,64 @@ body {
 
 .check:hover {
   box-shadow: 0 1px 4px rgba(27, 39, 51, 0.10);
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.check-toggle {
+  flex: 0 0 auto;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.check-toggle:hover,
+.check-toggle:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.check-toggle[aria-expanded="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.check-detail {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--line);
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+
+.check-detail[hidden] {
+  display: none;
+}
+
+.check-detail .check-description {
+  margin: 0 0 0.4rem;
+}
+
+.check-detail .check-output {
+  margin: 0;
+  color: var(--muted);
 }
 
 .check .check-id {

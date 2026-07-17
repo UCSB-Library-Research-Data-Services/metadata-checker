@@ -4,6 +4,7 @@
     <title>Metadata Report</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/report.js" defer></script>
 </head>
 <body>
     <main class="report">
@@ -83,8 +84,17 @@
                 <h1>Required tests: {{passed_required}} / {{total_required}}</h1>
                 {% for test in required_tests %}
                     <div class="check {{ test.status | lower }}">
-                        <span class="check-id">{{ test.check_id }}</span>
-                        <span class="check-status">{{ test.status }}</span>
+                        <div class="check-row">
+                            <span class="check-id">{{ test.check_id }}</span>
+                            <button type="button" class="check-toggle" aria-expanded="false" aria-label="Show details for {{ test.check_id }}">?</button>
+                            <span class="check-status">{{ test.status }}</span>
+                        </div>
+                        <div class="check-detail" hidden>
+                            <p class="check-description">{{ test.description }}</p>
+                            {% if test.output %}
+                            <p class="check-output"><strong>Result:</strong> {{ test.output }}</p>
+                            {% endif %}
+                        </div>
                     </div>
                 {% endfor %}
             </div>
@@ -93,8 +103,17 @@
                 <h1>Recommended Tests: {{passed_optional}} / {{total_optional}}</h1>
                 {% for test in optional_tests %}
                     <div class="check {{ test.status | lower }}">
-                        <span class="check-id">{{ test.check_id }}</span>
-                        <span class="check-status">{{ test.status }}</span>
+                        <div class="check-row">
+                            <span class="check-id">{{ test.check_id }}</span>
+                            <button type="button" class="check-toggle" aria-expanded="false" aria-label="Show details for {{ test.check_id }}">?</button>
+                            <span class="check-status">{{ test.status }}</span>
+                        </div>
+                        <div class="check-detail" hidden>
+                            <p class="check-description">{{ test.description }}</p>
+                            {% if test.output %}
+                            <p class="check-output"><strong>Result:</strong> {{ test.output }}</p>
+                            {% endif %}
+                        </div>
                     </div>
                 {% endfor %}
             </div>
@@ -103,8 +122,17 @@
                 <h1>Optional insights: {{passed_information}} / {{total_information}}</h1>
                 {% for test in information_tests %}
                     <div class="check {{ test.status | lower }}">
-                        <span class="check-id">{{ test.check_id }}</span>
-                        <span class="check-status">{{ test.status }}</span>
+                        <div class="check-row">
+                            <span class="check-id">{{ test.check_id }}</span>
+                            <button type="button" class="check-toggle" aria-expanded="false" aria-label="Show details for {{ test.check_id }}">?</button>
+                            <span class="check-status">{{ test.status }}</span>
+                        </div>
+                        <div class="check-detail" hidden>
+                            <p class="check-description">{{ test.description }}</p>
+                            {% if test.output %}
+                            <p class="check-output"><strong>Result:</strong> {{ test.output }}</p>
+                            {% endif %}
+                        </div>
                     </div>
                 {% endfor %}
             </div>
