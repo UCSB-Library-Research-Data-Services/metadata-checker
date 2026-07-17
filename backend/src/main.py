@@ -426,7 +426,7 @@ def cache_report(conn, dataset_id, metadata, report):
                        DO UPDATE SET check_result_status = ?,
                                      check_result_description = ?
                        """,
-                       (dataset_id, check_id, CHECK_DESCRIPTIONS.get(check_id, "No description available"), test['status'], test['output'], test['status'], test['output']))
+                       (dataset_id, check_id, CHECK_DESCRIPTIONS.get(check_id, "No description available"), test['status'], json.dumps(test['output']), test['status'], json.dumps(test['output'])))
 
 
 
