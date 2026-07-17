@@ -9,13 +9,17 @@ from typing import Optional
 import httpx
 import json
 from pydantic import BaseModel
+import sqlite3
+
 
 class RefreshBody(BaseModel):
     dataset_pid: str
     callback: str
 
+class ChecksToToggle(BaseModel):
+    checks: list[str]
 
-import sqlite3
+
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -284,8 +288,7 @@ async def get_json(callback):
 
 async def render_dashboard(metadata, validation_report, callback):
 
-    status = validation_report["run_status"]
-    test_results = validation_report["results"]
+    test_results = json.loads(validation_report)
 
     #seperate out into three categories
     required_tests = []
@@ -346,7 +349,7 @@ async def render_dashboard(metadata, validation_report, callback):
 
 
     return main_dashboard.render(dataset_id=persistent_id,
-                           status=status,
+                           status="Success",
                            required_tests = required_tests, 
                            optional_tests = optional_tests,
                            information_tests = information_tests,
@@ -378,10 +381,20 @@ def connect_to_database():
                     CREATE TABLE IF NOT EXISTS datasets(
                         dataset_id TEXT,
                         metadata TEXT NOT NULL,
-                        report TEXT NOT NULL,
                         PRIMARY KEY(dataset_id))
                     """)
 
+    cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS checks(
+                        dataset_id TEXT,
+                        check_name TEXT NOT NULL,
+                        check_description TEXT NOT NULL,
+                        check_result_status TEXT NOT NULL,
+                        check_result_description TEXT NOT NULL,
+                        visibility INTEGER NOT NULL DEFAULT 0 CHECK (visibility IN (0,1)),
+                        PRIMARY KEY(dataset_id, check_name),
+                        FOREIGN KEY (dataset_id) REFERENCES datasets)
+                    """)
 
     return conn
 
@@ -395,12 +408,25 @@ def cache_report(conn, dataset_id, metadata, report):
     #check if we already have a report cached in the database
 
     cursor.execute("""
-                    INSERT INTO datasets (dataset_id, metadata, report)
-                    VALUES (?, ?, ?)
+                    INSERT INTO datasets (dataset_id, metadata)
+                    VALUES (?, ?)
                     ON CONFLICT (dataset_id)
-                    DO UPDATE SET metadata=?, report=?
+                    DO UPDATE SET metadata=? 
                    """,
-                   (dataset_id, json.dumps(metadata), json.dumps(report), json.dumps(metadata), json.dumps(report)))
+                   (dataset_id, json.dumps(metadata), json.dumps(metadata)))
+
+    test_results = report["results"] 
+
+    for test in test_results:
+        check_id = test['check_id'].removesuffix('.xml')
+        cursor.execute("""
+                       INSERT INTO checks (dataset_id, check_name, check_description, check_result_status, check_result_description, visibility)
+                       VALUES (?, ?, ?, ?, ?, 1)
+                       ON CONFLICT (dataset_id, check_name)
+                       DO UPDATE SET check_result_status = ?,
+                                     check_result_description = ?
+                       """,
+                       (dataset_id, check_id, CHECK_DESCRIPTIONS.get(check_id, "No description available"), test['status'], test['output'], test['status'], test['output']))
 
 
 
@@ -416,7 +442,7 @@ def fetch_cached_report(conn, dataset_id):
     cursor = conn.cursor()
 
     cursor.execute("""
-                    SELECT *
+                    SELECT metadata
                     FROM datasets
                     WHERE dataset_id = ?
                     """,
@@ -428,7 +454,47 @@ def fetch_cached_report(conn, dataset_id):
     if row is None:
         return None
 
-    return (json.loads(row[1]), json.loads(row[2]))
+    metadata = json.loads(row[0])
+
+    cursor.execute("""
+                   SELECT *
+                   FROM checks
+                   WHERE dataset_id = ?
+                   """,
+                   (dataset_id, )
+                   )
+
+    rows = cursor.fetchall()
+
+    check_list = []
+
+    for row in rows:
+        check_dict = {
+                'check_id': row[1],
+                'description':row[2],
+                'status':row[3],
+                'output':row[4]
+                }
+        check_list.append(check_dict)     
+
+
+    return metadata, json.dumps(check_list)
+
+
+
+
+async def toggle_checks(conn, dataset_id, check_list):
+    cursor = conn.cursor()
+    for check in check_list:
+        cursor.execute("""
+                    INSERT INTO checks (dataset_id, check, validation)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT (dataset_id)
+                    DO UPDATE SET metadata=?, report=?
+                   """,
+                   (dataset_id, json.dumps(metadata), json.dumps(report), json.dumps(metadata), json.dumps(report)))
+
+
 
 
 
@@ -479,5 +545,10 @@ async def load_new_report(refreshBody: RefreshBody):
     #return await render_dashboard(metadata, validation_report)
 
     return {"message":"succesfully ran and cached new report"}
+
+@app.post("/api/toggle-check-visibility")
+async def toggle_check_visibility(checks: ChecksToToggle):
+    conn = connect_to_database()
+
 
 
