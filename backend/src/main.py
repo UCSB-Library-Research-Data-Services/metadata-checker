@@ -16,8 +16,9 @@ class RefreshBody(BaseModel):
     dataset_pid: str
     callback: str
 
-class ChecksToToggle(BaseModel):
-    checks: list[str]
+class ToggleVisibility(BaseModel):
+    dataset_id: str
+    check_id: str
 
 
 
@@ -296,48 +297,56 @@ async def render_dashboard(metadata, validation_report, callback):
     information_tests = []
 
 
-    #used for stats
+    #used for stats (only visible checks count toward these)
     passed_checks = 0
+    visible_checks = 0
     passed_required = 0
+    total_required = 0
     passed_optional = 0
+    total_optional = 0
     passed_information = 0
+    total_information = 0
 
 
 
     #sort into three lists, get stats
     for test in test_results:
         check_id = test['check_id'].removesuffix('.xml')
+        is_visible = bool(test.get('visibility', 1))
+
+        entry = {'check_id': check_id,
+                 'label': HUMAN_READABLE_NAMES.get(check_id, check_id),
+                 'status': test['status'],
+                 'description': CHECK_DESCRIPTIONS.get(check_id, "No description available."),
+                 'output': test.get('output'),
+                 'visibility': is_visible
+                 }
 
         if check_id in REQUIRED_CHECKS_NAMES:
-            required_tests.append({'check_id': HUMAN_READABLE_NAMES.get(check_id, check_id),
-                                   'status': test['status'],
-                                   'description': CHECK_DESCRIPTIONS.get(check_id, "No description available."),
-                                   'output': test.get('output')
-                                   })
-
-            if test['status'] == 'SUCCESS':
-                passed_required += 1
+            required_tests.append(entry)
+            if is_visible:
+                total_required += 1
+                if test['status'] == 'SUCCESS':
+                    passed_required += 1
 
         if check_id in OPTIONAL_CHECKS_NAMES:
-            optional_tests.append({'check_id': HUMAN_READABLE_NAMES.get(check_id, check_id),
-                                   'status': test['status'],
-                                   'description': CHECK_DESCRIPTIONS.get(check_id, "No description available."),
-                                   'output': test.get('output')
-                                   })
-            if test['status'] == 'SUCCESS':
-                passed_optional += 1
+            optional_tests.append(entry)
+            if is_visible:
+                total_optional += 1
+                if test['status'] == 'SUCCESS':
+                    passed_optional += 1
 
         if check_id in INFORMATION_CHECKS_NAMES:
-            information_tests.append({'check_id': HUMAN_READABLE_NAMES.get(check_id, check_id),
-                                   'status': test['status'],
-                                   'description': CHECK_DESCRIPTIONS.get(check_id, "No description available."),
-                                   'output': test.get('output')
-                                   })
-            if test['status'] == 'SUCCESS':
-                passed_information += 1
+            information_tests.append(entry)
+            if is_visible:
+                total_information += 1
+                if test['status'] == 'SUCCESS':
+                    passed_information += 1
 
-        if test['status'] == 'SUCCESS':
-            passed_checks += 1
+        if is_visible:
+            visible_checks += 1
+            if test['status'] == 'SUCCESS':
+                passed_checks += 1
 
 
 
@@ -350,18 +359,18 @@ async def render_dashboard(metadata, validation_report, callback):
 
     return main_dashboard.render(dataset_id=persistent_id,
                            status="Success",
-                           required_tests = required_tests, 
+                           required_tests = required_tests,
                            optional_tests = optional_tests,
                            information_tests = information_tests,
                            dataset_title = title,
                            version_state = version_state,
-                           passed_checks = passed_checks/len(test_results),
+                           passed_checks = (passed_checks/visible_checks) if visible_checks else 0,
                            passed_required = passed_required,
-                           total_required = len(required_tests),
+                           total_required = total_required,
                            passed_optional = passed_optional,
-                           total_optional = len(optional_tests),
+                           total_optional = total_optional,
                            passed_information = passed_information,
-                           total_information = len(information_tests),
+                           total_information = total_information,
                            callback=callback
                            )
     
@@ -473,7 +482,8 @@ def fetch_cached_report(conn, dataset_id):
                 'check_id': row[1],
                 'description':row[2],
                 'status':row[3],
-                'output':row[4]
+                'output':row[4],
+                'visibility':row[5]
                 }
         check_list.append(check_dict)     
 
@@ -483,16 +493,22 @@ def fetch_cached_report(conn, dataset_id):
 
 
 
-async def toggle_checks(conn, dataset_id, check_list):
+def toggle_check_visibility(conn, dataset_id, check_id):
     cursor = conn.cursor()
-    for check in check_list:
-        cursor.execute("""
-                    INSERT INTO checks (dataset_id, check, validation)
-                    VALUES (?, ?, ?)
-                    ON CONFLICT (dataset_id)
-                    DO UPDATE SET metadata=?, report=?
+    cursor.execute("""
+                   SELECT visibility FROM checks
+                   WHERE dataset_id = ? AND check_name = ?
                    """,
-                   (dataset_id, json.dumps(metadata), json.dumps(report), json.dumps(metadata), json.dumps(report)))
+                   (dataset_id, check_id))
+    row = cursor.fetchone()
+    new_visibility = 1 - row[0]
+    cursor.execute("""
+                   UPDATE checks SET visibility = ?
+                   WHERE dataset_id = ? AND check_name = ?
+                   """,
+                   (new_visibility, dataset_id, check_id))
+    conn.commit()
+    return new_visibility
 
 
 
@@ -547,8 +563,10 @@ async def load_new_report(refreshBody: RefreshBody):
     return {"message":"succesfully ran and cached new report"}
 
 @app.post("/api/toggle-check-visibility")
-async def toggle_check_visibility(checks: ChecksToToggle):
+async def toggle_check_visibility_route(body: ToggleVisibility):
     conn = connect_to_database()
+    new_visibility = toggle_check_visibility(conn, body.dataset_id, body.check_id)
+    return {"visibility": new_visibility}
 
 
 

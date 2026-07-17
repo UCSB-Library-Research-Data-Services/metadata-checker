@@ -83,11 +83,18 @@
             <div class="report-column">
                 <h1>Required tests: {{passed_required}} / {{total_required}}</h1>
                 {% for test in required_tests %}
-                    <div class="check {{ test.status | lower }}">
-                        <div class="check-flip" role="button" tabindex="0" aria-expanded="false" aria-label="Show details for {{ test.check_id }}">
+                    <div class="check {{ test.status | lower }}{{ ' ignored' if not test.visibility else '' }}">
+                        <button class="visibility-toggle" type="button"
+                                data-dataset-id="{{ dataset_id }}"
+                                data-check-id="{{ test.check_id }}"
+                                aria-pressed="{{ 'false' if not test.visibility else 'true' }}"
+                                aria-label="Toggle ignore for {{ test.label }}">
+                            {{ 'Ignored' if not test.visibility else 'Ignore' }}
+                        </button>
+                        <div class="check-flip" role="button" tabindex="0" aria-expanded="false" aria-label="Show details for {{ test.label }}">
                             <div class="check-face check-front">
                                 <div class="check-front-row">
-                                    <span class="check-id">{{ test.check_id }}</span>
+                                    <span class="check-id">{{ test.label }}</span>
                                     <span class="check-status">{{ test.status }}</span>
                                 </div>
                                 <span class="check-hint">Tap for details</span>
@@ -107,11 +114,18 @@
             <div class="report-column">
                 <h1>Recommended Tests: {{passed_optional}} / {{total_optional}}</h1>
                 {% for test in optional_tests %}
-                    <div class="check {{ test.status | lower }}">
-                        <div class="check-flip" role="button" tabindex="0" aria-expanded="false" aria-label="Show details for {{ test.check_id }}">
+                    <div class="check {{ test.status | lower }}{{ ' ignored' if not test.visibility else '' }}">
+                        <button class="visibility-toggle" type="button"
+                                data-dataset-id="{{ dataset_id }}"
+                                data-check-id="{{ test.check_id }}"
+                                aria-pressed="{{ 'false' if not test.visibility else 'true' }}"
+                                aria-label="Toggle ignore for {{ test.label }}">
+                            {{ 'Ignored' if not test.visibility else 'Ignore' }}
+                        </button>
+                        <div class="check-flip" role="button" tabindex="0" aria-expanded="false" aria-label="Show details for {{ test.label }}">
                             <div class="check-face check-front">
                                 <div class="check-front-row">
-                                    <span class="check-id">{{ test.check_id }}</span>
+                                    <span class="check-id">{{ test.label }}</span>
                                     <span class="check-status">{{ test.status }}</span>
                                 </div>
                                 <span class="check-hint">Tap for details</span>
@@ -131,11 +145,18 @@
             <div class="report-column">
                 <h1>Optional insights: {{passed_information}} / {{total_information}}</h1>
                 {% for test in information_tests %}
-                    <div class="check {{ test.status | lower }}">
-                        <div class="check-flip" role="button" tabindex="0" aria-expanded="false" aria-label="Show details for {{ test.check_id }}">
+                    <div class="check {{ test.status | lower }}{{ ' ignored' if not test.visibility else '' }}">
+                        <button class="visibility-toggle" type="button"
+                                data-dataset-id="{{ dataset_id }}"
+                                data-check-id="{{ test.check_id }}"
+                                aria-pressed="{{ 'false' if not test.visibility else 'true' }}"
+                                aria-label="Toggle ignore for {{ test.label }}">
+                            {{ 'Ignored' if not test.visibility else 'Ignore' }}
+                        </button>
+                        <div class="check-flip" role="button" tabindex="0" aria-expanded="false" aria-label="Show details for {{ test.label }}">
                             <div class="check-face check-front">
                                 <div class="check-front-row">
-                                    <span class="check-id">{{ test.check_id }}</span>
+                                    <span class="check-id">{{ test.label }}</span>
                                     <span class="check-status">{{ test.status }}</span>
                                 </div>
                                 <span class="check-hint">Tap for details</span>
