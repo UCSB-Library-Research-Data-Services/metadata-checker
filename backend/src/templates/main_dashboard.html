@@ -72,11 +72,11 @@
             <span class="pill {{ status | lower }}">{{ status }}</span>
         </p>
 
-        <div class= "percentage">Metadata score: {{passed_checks * 100}}%</div>
+        <div class= "percentage">Metadata score: {{ (passed_checks * 100) | round | int }}%</div>
 
 
         <div class="progress-track">
-            <div class="progress-fill" style="width: {{passed_checks * 100}}%;"></div>
+            <div class="progress-fill" style="width: {{ (passed_checks * 100) | round | int }}%;"></div>
         </div>
 
         <div class="checks">
