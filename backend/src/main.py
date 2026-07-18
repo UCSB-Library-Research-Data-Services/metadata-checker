@@ -245,9 +245,6 @@ def get_title(metadata):
 def get_version_state(metadata):
     return metadata.get('data', {}).get('latestVersion', {}).get('versionState', "No version found")
 
-def get_persistent_id(metadata):
-    return metadata.get('data', {}).get('identifier', "No identifier found")
-
 
 
 
@@ -287,7 +284,7 @@ async def get_json(callback):
 
 
 
-async def render_dashboard(metadata, validation_report, callback):
+async def render_dashboard(dataset_id, metadata, validation_report, callback):
 
     test_results = json.loads(validation_report)
 
@@ -353,11 +350,10 @@ async def render_dashboard(metadata, validation_report, callback):
     description = get_description(metadata)
     title = get_title(metadata)
     version_state = get_version_state(metadata)
-    persistent_id = get_persistent_id(metadata)
 
 
 
-    return main_dashboard.render(dataset_id=persistent_id,
+    return main_dashboard.render(dataset_id=dataset_id,
                            status="Success",
                            required_tests = required_tests,
                            optional_tests = optional_tests,
@@ -543,8 +539,8 @@ async def get_metadata_report( callback:str, locale: str):
     if cached_report_info is None:
         return empty_dashboard.render(dataset_id=dataset_pid, callback=callback)
 
-    metadata, validation_report = cached_report_info 
-    return await render_dashboard(metadata, validation_report, callback)
+    metadata, validation_report = cached_report_info
+    return await render_dashboard(dataset_pid, metadata, validation_report, callback)
 
 
 
