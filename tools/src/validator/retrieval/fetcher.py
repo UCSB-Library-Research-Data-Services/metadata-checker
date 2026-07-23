@@ -26,14 +26,6 @@ def initialize_database(database_name):
     cursor = conn.cursor()
 
     cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS datasets(
-                        id TEXT,
-                        report TEXT NOT NULL,
-                        PRIMARY KEY(id))
-                    """)
-
-
-    cursor.execute("""
                     CREATE TABLE IF NOT EXISTS latest_time(
                     last_check TEXT,
                     PRIMARY KEY(last_check))
