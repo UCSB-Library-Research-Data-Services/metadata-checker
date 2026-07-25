@@ -11,7 +11,7 @@ def connect_to_database():
 
     current_dir = Path(__file__).resolve().parent
 
-    db_path  = current_dir/ ".." / "data" / DB_NAME
+    db_path  = current_dir/ ".." / ".." / "data" / DB_NAME
 
     conn = sqlite3.connect(str(db_path))
 
