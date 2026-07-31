@@ -67,6 +67,63 @@
         });
     </script>
 
+        <div class="email-report">
+            <label for="report-email-input" class="email-report-label">Email me this report</label>
+            <input type="email" id="report-email-input" placeholder="you@example.com" required>
+            <button id="send-report-email-button" type="button">Send me a report</button>
+        </div>
+        <div id="email-status-message"></div>
+
+    <script>
+        document.getElementById('send-report-email-button').addEventListener('click', async function() {
+            const button = this;
+            const emailInput = document.getElementById('report-email-input');
+            const statusMessage = document.getElementById('email-status-message');
+            const email = emailInput.value.trim();
+
+            if (!email) {
+                statusMessage.style.color = "red";
+                statusMessage.textContent = "Please enter an email address.";
+                return;
+            }
+
+            button.disabled = true;
+            statusMessage.style.color = "orange";
+            statusMessage.textContent = "Sending report...";
+
+            try {
+                const payload = {
+                    dataset_id: {{ dataset_id | tojson }},
+                    email: email
+                };
+
+                const response = await fetch('/api/send-report-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    statusMessage.style.color = "green";
+                    statusMessage.textContent = "Report sent! Check your inbox.";
+                } else {
+                    statusMessage.style.color = "red";
+                    statusMessage.textContent = typeof result.detail === "string"
+                        ? `Error: ${result.detail}`
+                        : "Error: Please enter a valid email address.";
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                statusMessage.style.color = "red";
+                statusMessage.textContent = "Network error. Failed to reach server.";
+            } finally {
+                button.disabled = false;
+            }
+        });
+    </script>
+
 
         <div class= "percentage">Metadata score: {{ (passed_checks * 100) | round | int }}%</div>
 

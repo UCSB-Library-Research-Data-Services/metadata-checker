@@ -1,11 +1,13 @@
+import asyncio
+
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse 
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from pathlib import Path
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
-from utils import helpers, db, templates
+from utils import helpers, db, templates, mailer
 
 from validator import run_metadata_report
 class RefreshBody(BaseModel):
@@ -15,6 +17,10 @@ class RefreshBody(BaseModel):
 class ToggleVisibility(BaseModel):
     dataset_id: str
     check_id: str
+
+class SendReportEmail(BaseModel):
+    dataset_id: str
+    email: EmailStr
 
 
 
@@ -71,6 +77,25 @@ async def toggle_check_visibility_route(body: ToggleVisibility):
     conn = db.connect_to_database()
     new_visibility = db.toggle_check_visibility(conn, body.dataset_id, body.check_id)
     return {"visibility": new_visibility}
+
+@app.post("/api/send-report-email")
+async def send_report_email_route(body: SendReportEmail):
+    conn = db.connect_to_database()
+    cached_report_info = db.fetch_cached_report(conn, body.dataset_id)
+
+    if cached_report_info is None:
+        raise HTTPException(status_code=404, detail="No cached report found for this dataset")
+
+    metadata, validation_report = cached_report_info
+    html_body = await templates.render_report_email(body.dataset_id, metadata, validation_report)
+    subject = f"Metadata Report: {helpers.get_title(metadata)}"
+
+    try:
+        await asyncio.to_thread(mailer.send_html_email, body.email, subject, html_body)
+    except mailer.MailerError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
+
+    return {"message": "Report email sent"}
 
 
 

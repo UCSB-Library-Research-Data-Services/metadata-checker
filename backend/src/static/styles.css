@@ -328,4 +328,57 @@ body {
   color: var(--skip);
 }
 
+.email-report {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+}
+
+.email-report-label {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+#report-email-input {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  min-width: 240px;
+}
+
+#report-email-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+#send-report-email-button {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+#send-report-email-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+#send-report-email-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 
