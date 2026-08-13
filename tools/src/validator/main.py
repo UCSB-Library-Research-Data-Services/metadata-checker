@@ -15,11 +15,6 @@ import subprocess
 import json
 import tempfile
 
-#from translator.translate import translate as json_to_datacite
-#from translator.translate import pretty_print
-
-#from run_metadig import check
-
 from .retrieval import fetch
 from .translation import translate, pretty_print
 
@@ -27,6 +22,8 @@ from metadig import checks
 from metadig import suites
 
 from pathlib import Path
+
+from datacite import generate_xml, build_xml
 
 
 logger = logging.getLogger(__name__)
@@ -140,15 +137,22 @@ def fetch_metadata_report(dataset_pid):
 #Runs report based on a metadata retrieved by a signed URL, used by FastAPI
 #Takes in metadata, returns metadig report
 async def run_metadata_report(metadata):
-    root = translate(metadata)
-    xml_str = pretty_print(root)
-    write_xml(xml_str)
+
+
+    #root = translate(metadata)
+    #xml_str = pretty_print(root)
+    #write_xml(xml_str)
+
+
+    current_file = Path(__file__).resolve()
+    current_dir = current_file.parent
+    target_folder = current_dir / ".." / ".." / "tmp" / "output.xml"
+
+    generate_xml(metadata, target_folder)
+
     result = run_metadig_engine("FAIR-suite-0.5.0.xml")
+
     return json.loads(result)
-
-
-
-    
 
 
 if __name__ == "__main__":
