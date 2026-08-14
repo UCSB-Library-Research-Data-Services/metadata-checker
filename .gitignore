@@ -2,11 +2,10 @@
 venv/
 metadig/metadig-py/.venv/
 data/reports.db
-tools/src/validator/output.json
-tools/tmp/*
-!tools/tmp/.gitkeep
 
 backend/data/reports.db
+backend/tmp/*
+!backend/tmp/.gitkeep
 
 
 __pycache__/
