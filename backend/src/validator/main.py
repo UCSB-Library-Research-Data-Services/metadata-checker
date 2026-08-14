@@ -1,6 +1,5 @@
 import os
 import json
-import logging
 
 from pathlib import Path
 from dotenv import load_dotenv
@@ -8,7 +7,6 @@ from dotenv import load_dotenv
 from metadig import suites
 from datacite import generate_xml
 
-logger = logging.getLogger(__name__)
 load_dotenv()
 
 #note: sysmeta_path is a path to a dummy sysmeta file we don't actually need
@@ -27,15 +25,7 @@ def run_metadig_engine(suite_file):
                               str(sysmeta_path)
                               )
 
-    suite_results = json.loads(result)
-
-    errored_checks = [r["check_id"] for r in suite_results["results"] if r["status"] == "ERROR"]
-    if errored_checks:
-        logger.warning("Filtered out checks that errored while running: %s", errored_checks)
-
-    suite_results["results"] = [r for r in suite_results["results"] if r["status"] != "ERROR"]
-
-    return json.dumps(suite_results, indent=4)
+    return result
 
 #Runs report based on a metadata retrieved by a signed URL, used by FastAPI
 #Takes in metadata, returns metadig report
