@@ -14,8 +14,8 @@ def run_metadig_engine(suite_file):
     current_dir = current_file.parent
     metadata_path = current_dir / ".." / ".." / "tmp" / "output.xml"
     sysmeta_path = current_dir / ".." / ".." / "data" / "sysmeta_dummy.xml"
-    checks_path = current_dir / "dataverse_checks"
-    path_to_suite = checks_path / suite_file
+    checks_path = current_dir / "dataverse_checks" / "checks"
+    path_to_suite = current_dir / "dataverse_checks" / suite_file
 
     result = suites.run_suite(str(path_to_suite),
                               str(checks_path),
@@ -35,5 +35,7 @@ async def run_metadata_report(metadata):
     generate_xml(metadata, target_folder)
 
     result = run_metadig_engine("dataverse-FAIR-suite.xml")
+
+    print(result)
 
     return json.loads(result)
