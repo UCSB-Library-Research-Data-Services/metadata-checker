@@ -99,6 +99,8 @@ To run the external tool at a different endpoint, the `manifest.json` must be ed
 
 To use it: open a Dataset in Dataverse, click **Access Dataset** or **Edit**, and select **metadata-checker**. The dashboard shows the dataset's title, PID, and version state; a pass/fail percentage with a progress bar; and checks grouped into Required, Recommended, and Informational columns based on the `<level>` encoded in the suite XML. Each check is a click-to-flip card showing its description and output, with a visibility toggle to hide/show it from the summary. A "Re-run report" button re-fetches metadata and re-runs the validation suite, and a "Send me a report" button emails the cached report to an address you supply.
 
+![Metadata checker dashboard](assets/dashboard.png)
+
 
 
 ### Credit and Attributions
