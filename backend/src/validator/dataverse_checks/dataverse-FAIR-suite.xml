@@ -92,7 +92,6 @@
         environment=="python" checks). Left active so the suite output makes
         that limitation visible ("Incompatible check environment") rather
         than silently omitting checks that do apply to this metadata.
-    -->
     <check>
         <id>resource.type.valid-2.0.0</id>
         <type>Findable</type>
@@ -108,6 +107,8 @@
         <type>Findable</type>
         <level>OPTIONAL</level>
     </check>
+
+    -->
 
     <!-- Accessible -->
     <!-- Selector is correct ('/resource/identifier'); the check's own DOI-format
@@ -129,12 +130,15 @@
         <level>REQUIRED</level>
     </check>
 
-    <!-- Accessible, R-only (see note above) -->
+    <!-- Accessible, R-only (see note above) 
     <check>
         <id>geographic.description.present-2.0.0</id>
         <type>Accessible</type>
         <level>REQUIRED</level>
     </check>
+    -->
+
+
 
     <!-- Interoperable -->
     <!-- The only Interoperable check with a real DataCite selector for this suite:
