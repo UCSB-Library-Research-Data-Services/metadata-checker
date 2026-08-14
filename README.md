@@ -1,6 +1,7 @@
 ## Metadata Validation Tool
 
-Joshua Gray | © 2026 The Regents of the University of California
+[Joshua Gray](https://www.linkedin.com/in/joshuaegray/)
+© 2026 The Regents of the University of California
 
 ### Summary
 
