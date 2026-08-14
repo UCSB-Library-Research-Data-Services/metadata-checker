@@ -1,11 +1,14 @@
 ## Metadata Validation Tool
-Joshua Gray
+
+Joshua Gray | © 2026 The Regents of the University of California
 
 ### Summary
 
 This is a metadata validation tool for the Dataverse academic repository system, and provides infrastructure for using the [metadig-py](https://github.com/UCSB-Library-Research-Data-Services/metadig-py/tree/metadata-checker-install) metadata validation tool on the metadata for a given Dataset. Currently, the tool runs a suite of checks corresponding to FAIR data principles.
 
 The application provides a web GUI for running and viewing the metadig reports, which is accessed in the form of an external tool in Dataverse.
+
+![Metadata checker dashboard](assets/dashboard.png)
 
 ### Architecture
 
@@ -99,14 +102,24 @@ To run the external tool at a different endpoint, the `manifest.json` must be ed
 
 To use it: open a Dataset in Dataverse, click **Access Dataset** or **Edit**, and select **metadata-checker**. The dashboard shows the dataset's title, PID, and version state; a pass/fail percentage with a progress bar; and checks grouped into Required, Recommended, and Informational columns based on the `<level>` encoded in the suite XML. Each check is a click-to-flip card showing its description and output, with a visibility toggle to hide/show it from the summary. A "Re-run report" button re-fetches metadata and re-runs the validation suite, and a "Send me a report" button emails the cached report to an address you supply.
 
-![Metadata checker dashboard](assets/dashboard.png)
 
 
 
 ### Credit and Attributions
 
-This tool was written by [Joshua Gray](https://www.linkedin.com/in/joshuaegray/) for UCSB Library and Research Data Services.
+This tool was written by [Joshua Gray](https://www.linkedin.com/in/joshuaegray/) for UCSB Library Research Data Services.
+
+Thank you to [Jairo Melo](https://www.linkedin.com/in/jairoantoniomelo/) and [Greg Janee](https://www.linkedin.com/in/gregjanee/) for their support and guidance in this project.
+
+© 2026 The Regents of the University of California
 
 ### Disclaimer
 
 This code is provided "as is," with no warranties or guarantees of any kind. It was developed primarily for internal use; neither UCSB nor Joshua Gray is responsible for any damages resulting from its use.
+
+
+## Next Steps
+
+This tool provides a powerful harness for integrating the metadig engine into Dataverse. Thus, there exist plentiful opportuinities for users to add their own XML checks and customize the tool to fit their specific needs. 
+
+Additionally, users may want to fork the [translator package](https://github.com/UCSB-Library-Research-Data-Services/dataverse-datacite-translator/tree/main) that is used to translate metdata into Datacite in order to add their own features to fit any new checks they add. The existing translator attempts to be a faithful, one-to-one copy of the internal export features of the Dataverse in order to act as a solid baseline.
