@@ -1,4 +1,5 @@
 import json
+import os
 
 from pathlib import Path
 from xml.etree import ElementTree
@@ -9,19 +10,24 @@ from datacite import generate_xml
 
 load_dotenv()
 
-SUITE_FILE = "dataverse-FAIR-suite.xml"
+DATAVERSE_CHECKS_DIR = Path(__file__).resolve().parent / "dataverse_checks"
+
+#Both overridable via .env; fall back to the bundled dataverse_checks/ files
+#when unset. Override values should be absolute paths - a relative one would
+#resolve against whatever cwd the FastAPI process happens to start from.
+SUITE_PATH = Path(os.getenv("METADIG_SUITE_PATH", str(DATAVERSE_CHECKS_DIR / "dataverse-FAIR-suite.xml")))
+CHECKS_PATH = Path(os.getenv("METADIG_CHECKS_PATH", str(DATAVERSE_CHECKS_DIR / "checks")))
+
 
 #note: sysmeta_path is a path to a dummy sysmeta file we don't actually need
-def run_metadig_engine(suite_file):
+def run_metadig_engine():
     current_file = Path(__file__).resolve()
     current_dir = current_file.parent
     metadata_path = current_dir / ".." / ".." / "tmp" / "output.xml"
     sysmeta_path = current_dir / ".." / ".." / "data" / "sysmeta_dummy.xml"
-    checks_path = current_dir / "dataverse_checks" / "checks"
-    path_to_suite = current_dir / "dataverse_checks" / suite_file
 
-    result = suites.run_suite(str(path_to_suite),
-                              str(checks_path),
+    result = suites.run_suite(str(SUITE_PATH),
+                              str(CHECKS_PATH),
                               str(metadata_path),
                               str(sysmeta_path)
                               )
@@ -32,9 +38,7 @@ def run_metadig_engine(suite_file):
 #REQUIRED/OPTIONAL/INFO), used to categorize results on the dashboard
 #instead of maintaining a separate hardcoded list.
 def get_check_levels():
-    current_dir = Path(__file__).resolve().parent
-    suite_path = current_dir / "dataverse_checks" / SUITE_FILE
-    suite_doc = ElementTree.parse(str(suite_path)).getroot()
+    suite_doc = ElementTree.parse(str(SUITE_PATH)).getroot()
     return {
         check.find("id").text.strip(): check.find("level").text.strip()
         for check in suite_doc.findall("check")
@@ -49,7 +53,7 @@ async def run_metadata_report(metadata):
 
     generate_xml(metadata, target_folder)
 
-    result = run_metadig_engine(SUITE_FILE)
+    result = run_metadig_engine()
 
     print(result)
 
