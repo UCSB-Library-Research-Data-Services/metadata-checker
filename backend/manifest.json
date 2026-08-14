@@ -4,7 +4,8 @@
   "toolName": "metadata-checker",
   "scope": "dataset",
   "types": [
-    "explore"
+    "explore",
+    "configure"
   ],
   "toolUrl":"http://127.0.0.1:8000/metadata-report",
   "httpMethod":"GET",
