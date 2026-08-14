@@ -1,9 +1,13 @@
 from jinja2 import Environment, PackageLoader, select_autoescape
 from pathlib import Path
 import json
+import logging
 
-from constants import CHECK_DESCRIPTIONS, HUMAN_READABLE_NAMES, REQUIRED_CHECKS_NAMES, OPTIONAL_CHECKS_NAMES, INFORMATION_CHECKS_NAMES
+from constants import CHECK_DESCRIPTIONS, HUMAN_READABLE_NAMES
+from validator import get_check_levels
 from .helpers import get_description, get_title, get_version_state
+
+logger = logging.getLogger(__name__)
 
 env = Environment(
         loader=PackageLoader("main"),
@@ -29,6 +33,7 @@ STATUS_COLORS = {
 def build_check_buckets(validation_report):
 
     test_results = json.loads(validation_report)
+    check_levels = get_check_levels()
 
     #seperate out into three categories
     required_tests = []
@@ -61,26 +66,28 @@ def build_check_buckets(validation_report):
                  'visibility': is_visible
                  }
 
-        if check_id in REQUIRED_CHECKS_NAMES:
+        level = check_levels.get(check_id)
+
+        if level == "REQUIRED":
             required_tests.append(entry)
             if is_visible:
                 total_required += 1
                 if test['status'] == 'SUCCESS':
                     passed_required += 1
-
-        if check_id in OPTIONAL_CHECKS_NAMES:
+        elif level == "OPTIONAL":
             optional_tests.append(entry)
             if is_visible:
                 total_optional += 1
                 if test['status'] == 'SUCCESS':
                     passed_optional += 1
-
-        if check_id in INFORMATION_CHECKS_NAMES:
+        elif level == "INFO":
             information_tests.append(entry)
             if is_visible:
                 total_information += 1
                 if test['status'] == 'SUCCESS':
                     passed_information += 1
+        else:
+            logger.warning("Check %s has no level in the suite XML; dropped from dashboard", check_id)
 
         if is_visible:
             visible_checks += 1

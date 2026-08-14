@@ -1,12 +1,15 @@
 import json
 
 from pathlib import Path
+from xml.etree import ElementTree
 from dotenv import load_dotenv
 
 from metadig import suites
 from datacite import generate_xml
 
 load_dotenv()
+
+SUITE_FILE = "dataverse-FAIR-suite.xml"
 
 #note: sysmeta_path is a path to a dummy sysmeta file we don't actually need
 def run_metadig_engine(suite_file):
@@ -25,6 +28,18 @@ def run_metadig_engine(suite_file):
 
     return result
 
+#Parses the FAIR suite XML and returns a {check_id: level} map (e.g.
+#REQUIRED/OPTIONAL/INFO), used to categorize results on the dashboard
+#instead of maintaining a separate hardcoded list.
+def get_check_levels():
+    current_dir = Path(__file__).resolve().parent
+    suite_path = current_dir / "dataverse_checks" / SUITE_FILE
+    suite_doc = ElementTree.parse(str(suite_path)).getroot()
+    return {
+        check.find("id").text.strip(): check.find("level").text.strip()
+        for check in suite_doc.findall("check")
+    }
+
 #Runs report based on a metadata retrieved by a signed URL, used by FastAPI
 #Takes in metadata, returns metadig report
 async def run_metadata_report(metadata):
@@ -34,7 +49,7 @@ async def run_metadata_report(metadata):
 
     generate_xml(metadata, target_folder)
 
-    result = run_metadig_engine("dataverse-FAIR-suite.xml")
+    result = run_metadig_engine(SUITE_FILE)
 
     print(result)
 
