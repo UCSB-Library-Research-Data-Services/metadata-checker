@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mdq:suite xmlns:mdq="https://nceas.ucsb.edu/mdqe/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://nceas.ucsb.edu/mdqe/v1 ../../src/main/resources/schemas/schema1.xsd">
+    <id>dataverse-FAIR-suite-1.0.0</id>
+    <name>FAIR Suite for Dataverse/DataCite Metadata</name>
+    <!--
+        Curated from FAIR-suite-0.4.0.xml for Dataverse datasets translated to
+        DataCite 4 XML. Built by verifying every check's actual DataCite
+        selector (not just its <dialect> declaration) against
+        metadig-checks/src/checks/. See docs/fair-suite-dataverse-analysis.md
+        for the full 52-check table and reasoning.
+
+        checks_path for this suite can point at either dataverse-checks/ (a
+        self-contained folder holding just these 21 files, patches included -
+        no other part of the metadig-checks repo is needed for this suite)
+        or metadig-checks/src/checks/ directly if you want the full checks
+        repo available (run_suite() just scans whichever directory you give
+        it for matching <id>s). Keep dataverse-checks/ in sync by hand if you
+        patch anything further in metadig-checks/.
+
+        Omitted entirely: every entity.attribute*, entity.checksum.present,
+        entity.name.present, entity.type.present, entity.identifier*,
+        entity.description.present, entity.qualityDescription.present,
+        entity.distributionURL.resolvable, all provenance.* checks,
+        resource.accessControlRules.present, resource.landingPage.present,
+        resource.distributionContactIdentifier.present,
+        resource.publisherIdentifier.present, resource.keywordType.present,
+        resource.taxonomicExtent.present, resource.service*.present - none of
+        these have a working DataCite ('/resource/...') selector in the
+        actual check code, regardless of dialect claims, so no Dataverse
+        translation could ever satisfy them.
+    -->
+
+    <!-- Findable -->
+    <check>
+        <id>resource.abstractLength.sufficient-2.0.0</id>
+        <type>Findable</type>
+        <level>REQUIRED</level>
+    </check>
+    <!-- Selector's subSelector had a missing '@' on subjectScheme (element vs. attribute) - patched locally in metadig-checks/ -->
+    <check>
+        <id>resource.keywords.controlled-2.1.0</id>
+        <type>Findable</type>
+        <level>REQUIRED</level>
+    </check>
+    <check>
+        <id>resource.keywords.present-2.1.0</id>
+        <type>Findable</type>
+        <level>REQUIRED</level>
+    </check>
+    <check>
+        <id>metadata.identifier.present-2.1.0</id>
+        <type>Findable</type>
+        <level>REQUIRED</level>
+    </check>
+    <check>
+        <id>resource.creator.present-2.0.0</id>
+        <type>Findable</type>
+        <level>REQUIRED</level>
+    </check>
+    <!-- Applicable, correct selector, but unmet without an ORCID in the author field today -->
+    <check>
+        <id>resource.creatorIdentifier.present-2.1.0</id>
+        <type>Findable</type>
+        <level>REQUIRED</level>
+    </check>
+    <check>
+        <id>resource.revisionDate.present-2.0.0</id>
+        <type>Findable</type>
+        <level>OPTIONAL</level>
+    </check>
+    <check>
+        <id>resource.publicationDate.present-2.1.0</id>
+        <type>Findable</type>
+        <level>OPTIONAL</level>
+    </check>
+    <check>
+        <id>resource.spatialExtent.present-2.0.0</id>
+        <type>Findable</type>
+        <level>OPTIONAL</level>
+    </check>
+    <!-- Selector had a missing '@' on dateType (element vs. attribute) - patched locally in metadig-checks/ -->
+    <check>
+        <id>resource.temporalExtent.present-2.0.0</id>
+        <type>Findable</type>
+        <level>OPTIONAL</level>
+    </check>
+
+    <!--
+        Findable, R-only: these have a real, satisfiable DataCite selector,
+        but <environment>rscript</environment> means metadig-py's python-only
+        engine can't execute them at all (suites.run_suite() only runs
+        environment=="python" checks). Left active so the suite output makes
+        that limitation visible ("Incompatible check environment") rather
+        than silently omitting checks that do apply to this metadata.
+    <check>
+        <id>resource.type.valid-2.0.0</id>
+        <type>Findable</type>
+        <level>INFO</level>
+    </check>
+    <check>
+        <id>resource.titleLength.sufficient-2.0.0</id>
+        <type>Findable</type>
+        <level>REQUIRED</level>
+    </check>
+    <check>
+        <id>resource.publicationDate.timeframe-2.0.0</id>
+        <type>Findable</type>
+        <level>OPTIONAL</level>
+    </check>
+
+    -->
+
+    <!-- Accessible -->
+    <!-- Selector is correct ('/resource/identifier'); the check's own DOI-format
+         handling doesn't recognize bare DataCite DOIs - patched locally in metadig-checks/ -->
+    <check>
+        <id>metadata.identifier.resolvable-2.1.0</id>
+        <type>Accessible</type>
+        <level>REQUIRED</level>
+    </check>
+    <check>
+        <id>resource.publisher.present-2.1.0</id>
+        <type>Accessible</type>
+        <level>REQUIRED</level>
+    </check>
+    <!-- Selector had a missing '@' on contributorType plus the wrong text() axis - patched locally in metadig-checks/ -->
+    <check>
+        <id>resource.distributionContact.present-2.1.0</id>
+        <type>Accessible</type>
+        <level>REQUIRED</level>
+    </check>
+
+    <!-- Accessible, R-only (see note above) 
+    <check>
+        <id>geographic.description.present-2.0.0</id>
+        <type>Accessible</type>
+        <level>REQUIRED</level>
+    </check>
+    -->
+
+
+
+    <!-- Interoperable -->
+    <!-- The only Interoperable check with a real DataCite selector for this suite:
+         entity.format.* target /resource/formats/format, a resource-level element,
+         despite the 'entity.' name. Every other Interoperable check in the FAIR
+         suite is column/attribute-level, which DataCite cannot represent. -->
+    <check>
+        <id>entity.format.present-2.1.0</id>
+        <type>Interoperable</type>
+        <level>REQUIRED</level>
+    </check>
+
+    <!-- Reusable -->
+    <check>
+        <id>entity.format.nonproprietary-2.1.0</id>
+        <type>Reusable</type>
+        <level>REQUIRED</level>
+    </check>
+    <check>
+        <id>resource.license.present-2.1.0</id>
+        <type>Reusable</type>
+        <level>REQUIRED</level>
+    </check>
+    <!-- Selector had a missing '@' on descriptionType - patched locally in metadig-checks/ -->
+    <check>
+        <id>resource.methods.present-2.0.0</id>
+        <type>Reusable</type>
+        <level>REQUIRED</level>
+    </check>
+</mdq:suite>
