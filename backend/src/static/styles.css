@@ -171,7 +171,7 @@ body {
    is a plain crossfade — no reflow, no resize, no jump. */
 .check-flip {
   display: grid;
-  padding: 0.8rem 1rem;
+  padding: 0.8rem 3.75rem 0.8rem 1rem;
   cursor: pointer;
 }
 
@@ -357,6 +357,7 @@ body {
   border-color: var(--accent);
 }
 
+#run-report-button,
 #send-report-email-button {
   font-family: var(--mono);
   font-size: 0.8rem;
@@ -371,11 +372,13 @@ body {
   cursor: pointer;
 }
 
+#run-report-button:hover,
 #send-report-email-button:hover {
   border-color: var(--accent);
   color: var(--accent);
 }
 
+#run-report-button:disabled,
 #send-report-email-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
