@@ -66,7 +66,7 @@ HUMAN_READABLE_NAMES = {
 
 CHECK_DESCRIPTIONS = {
     # === Findable Checks ===
-    'resource.abstractLength.sufficient-2.0.0': "Confirms the dataset has an abstract that is long enough to meaningfully summarize the data. A substantive abstract lets people judge whether a dataset is relevant to their work without downloading it first, which is central to making data Findable.",
+    'resource.abstractLength.sufficient-2.0.0': "Confirms the dataset has an abstract (description) that is long enough to meaningfully summarize the data. A substantive abstract lets people judge whether a dataset is relevant to their work without downloading it first, which is central to making data Findable.",
     'resource.type.valid-2.0.0': "Checks that the dataset declares a recognized resource type (e.g. dataset, software, collection). A valid, controlled resource type helps search systems and catalogs correctly classify and surface the dataset.",
     'resource.keywords.controlled-2.1.0': "Checks whether the dataset's keywords are drawn from a controlled vocabulary or thesaurus rather than free text. Controlled keywords make search and cross-dataset discovery far more reliable than ad hoc terms.",
     'resource.keywords.present-2.1.0': "Confirms that the dataset has at least one keyword. Keywords are one of the primary ways search engines and repositories index and surface datasets to potential users.",
@@ -83,12 +83,12 @@ CHECK_DESCRIPTIONS = {
     'resource.spatialExtent.present-2.0.0': "Checks that the dataset records at least one spatial extent (e.g. a bounding box). Spatial extent lets users find datasets covering a geographic area of interest through map-based or location search.",
     'geographic.description.present-2.0.0': "Confirms the dataset includes a plain-language description of its geographic coverage. This gives context to the raw coordinates and helps non-technical users understand where the data was collected.",
     'resource.taxonomicExtent.present.1': "Checks that the dataset records the taxonomic coverage (the species or taxa involved), where relevant. Taxonomic metadata lets researchers find datasets about specific organisms or taxonomic groups.",
-    'resource.temporalExtent.present-2.0.0': "Checks that the dataset records the time period the data covers. Temporal extent is essential for finding datasets relevant to a particular date range or study period.",
+    'resource.temporalExtent.present-2.0.0': "Checks that the dataset records the time period the data covers. Temporal extent is essential for finding datasets relevant to a particular date range or study period. Add a date of collection",
 
     # === Accessible Checks ===
     'resource.accessControlRules.present-2.0.0': "Confirms that access control rules are explicitly defined for the dataset. Explicit access rules make clear who can view or download the data, rather than leaving access ambiguous.",
     'resource.landingPage.present-2.1.0': "Checks that the dataset has a working landing page URL. A resolvable landing page gives users a stable, human-readable entry point to view and access the dataset.",
-    'resource.distributionContact.present-2.1.0': "Checks that a contact person or organization is listed for questions about accessing the data. This gives users someone to reach if the data can't be retrieved or if they have access questions.",
+    'resource.distributionContact.present-2.1.0': "Checks that a contact person or organization is listed for questions about accessing the data. This gives users someone to reach if the data can't be retrieved or if they have access questions. Add a creator email.",
     'resource.distributionContactIdentifier.present-2.1.0': "Checks that the listed distribution contact has a persistent identifier (such as an ORCID or ROR ID). This disambiguates the contact and links them to other records.",
     'metadata.identifier.resolvable-2.1.0': "Checks that the metadata record's persistent identifier (e.g. a DOI) actually resolves to a live page. An identifier that exists but doesn't resolve breaks citation and long-term accessibility.",
     'resource.publisher.present-2.1.0': "Verifies that the dataset metadata records a publisher — the organization or repository responsible for making the dataset available. Publisher information supports proper citation and helps users judge the authority of the resource.",
