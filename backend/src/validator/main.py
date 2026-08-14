@@ -19,9 +19,10 @@ def run_metadig_engine(suite_file):
     current_dir = current_file.parent
     metadata_path = current_dir / ".." / ".." / "tmp" / "output.xml"
     sysmeta_path = current_dir / ".." / ".." / "data" / "sysmeta_dummy.xml"
+    checks_path = current_dir / "dataverse_checks"
 
     result = suites.run_suite(str(path_to_suite),
-                              str(os.environ.get("METADIG_CHECKS_PATH")),
+                              str(checks_path),
                               str(metadata_path),
                               str(sysmeta_path)
                               )
