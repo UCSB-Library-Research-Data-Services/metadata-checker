@@ -1,4 +1,3 @@
-import os
 import json
 
 from pathlib import Path
@@ -11,13 +10,12 @@ load_dotenv()
 
 #note: sysmeta_path is a path to a dummy sysmeta file we don't actually need
 def run_metadig_engine(suite_file):
-    path_to_suite = Path(os.environ.get("METADIG_SUITE_PATH")) / suite_file
-
     current_file = Path(__file__).resolve()
     current_dir = current_file.parent
     metadata_path = current_dir / ".." / ".." / "tmp" / "output.xml"
     sysmeta_path = current_dir / ".." / ".." / "data" / "sysmeta_dummy.xml"
     checks_path = current_dir / "dataverse_checks"
+    path_to_suite = checks_path / suite_file
 
     result = suites.run_suite(str(path_to_suite),
                               str(checks_path),
@@ -36,6 +34,6 @@ async def run_metadata_report(metadata):
 
     generate_xml(metadata, target_folder)
 
-    result = run_metadig_engine("FAIR-suite-0.5.0.xml")
+    result = run_metadig_engine("dataverse-FAIR-suite.xml")
 
     return json.loads(result)
