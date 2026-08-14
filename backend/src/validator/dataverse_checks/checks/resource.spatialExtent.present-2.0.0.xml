@@ -11,7 +11,7 @@ def call():
   global output
   global status
 
-  if ('spatialExtent' in globals() and spatialExtent is not None and spatialExtent):
+  if ('spatialExtent' in globals() and spatialExtent is not None and any(spatialExtent)):
     output = "A spatial extent was found."
     status = "SUCCESS"
     return True
