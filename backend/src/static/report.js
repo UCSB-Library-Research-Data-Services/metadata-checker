@@ -1,3 +1,13 @@
+document.addEventListener('DOMContentLoaded', function () {
+  const el = document.getElementById('last-report-time');
+  if (!el || !el.dataset.timestamp) return;
+
+  const date = new Date(el.dataset.timestamp);
+  if (isNaN(date.getTime())) return;
+
+  el.textContent = date.toLocaleString();
+});
+
 function toggleCheckFlip(flip) {
   const expanded = flip.getAttribute('aria-expanded') === 'true';
   flip.setAttribute('aria-expanded', String(!expanded));

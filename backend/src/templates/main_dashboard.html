@@ -11,7 +11,7 @@
         <h1>Dataset: <span class="dataset-info">{{ dataset_title }}</span></h1>
         <h2>Persistent ID: <span class="dataset-info">{{ dataset_id }}</span></h2>
         <h2>Dataset Version State: <span class="dataset-info">{{ version_state }}</span></h2>
-        <h2>Last report ran: <span class="dataset-info">{{ last_report_time }}</span></h2>
+        <h2>Last report ran: <span class="dataset-info" id="last-report-time" data-timestamp="{{ report_generated_at or '' }}">{{ report_generated_at or "Unknown" }}</span></h2>
 
 
 
