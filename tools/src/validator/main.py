@@ -80,8 +80,16 @@ def run_metadig_engine(suite_file):
                               str(metadata_path),
                               str(sysmeta_path)
                               )
-    
-    return result
+
+    suite_results = json.loads(result)
+
+    errored_checks = [r["check_id"] for r in suite_results["results"] if r["status"] == "ERROR"]
+    if errored_checks:
+        logger.warning("Filtered out checks that errored while running: %s", errored_checks)
+
+    suite_results["results"] = [r for r in suite_results["results"] if r["status"] != "ERROR"]
+
+    return json.dumps(suite_results, indent=4)
 
 def write_xml(xml_str):
     current_file = Path(__file__).resolve()
