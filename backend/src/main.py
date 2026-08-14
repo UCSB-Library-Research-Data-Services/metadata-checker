@@ -55,8 +55,8 @@ async def get_metadata_report( callback:str, locale: str):
     if cached_report_info is None:
         return await templates.render_empty_dashboard(dataset_pid, callback)
 
-    metadata, validation_report = cached_report_info
-    return await templates.render_dashboard(dataset_pid, metadata, validation_report, callback)
+    metadata, validation_report, report_generated_at = cached_report_info
+    return await templates.render_dashboard(dataset_pid, metadata, validation_report, callback, report_generated_at)
 
 
 
@@ -86,7 +86,7 @@ async def send_report_email_route(body: SendReportEmail):
     if cached_report_info is None:
         raise HTTPException(status_code=404, detail="No cached report found for this dataset")
 
-    metadata, validation_report = cached_report_info
+    metadata, validation_report, _ = cached_report_info
     html_body = await templates.render_report_email(body.dataset_id, metadata, validation_report)
     subject = f"Metadata Report: {helpers.get_title(metadata)}"
 

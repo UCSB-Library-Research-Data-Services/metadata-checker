@@ -1,5 +1,6 @@
 from jinja2 import Environment, PackageLoader, select_autoescape
 from pathlib import Path
+from datetime import datetime
 import json
 
 from constants import CHECK_DESCRIPTIONS, HUMAN_READABLE_NAMES, REQUIRED_CHECKS_NAMES, OPTIONAL_CHECKS_NAMES, INFORMATION_CHECKS_NAMES
@@ -102,13 +103,18 @@ def build_check_buckets(validation_report):
     }
 
 #Renders dashboard
-async def render_dashboard(dataset_id, metadata, validation_report, callback):
+async def render_dashboard(dataset_id, metadata, validation_report, callback, report_generated_at):
 
     buckets = build_check_buckets(validation_report)
 
     description = get_description(metadata)
     title = get_title(metadata)
     version_state = get_version_state(metadata)
+
+    if report_generated_at:
+        last_report_time = datetime.fromisoformat(report_generated_at).strftime("%B %d, %Y %I:%M %p UTC")
+    else:
+        last_report_time = "Unknown"
 
 
 
@@ -118,6 +124,7 @@ async def render_dashboard(dataset_id, metadata, validation_report, callback):
                            information_tests = buckets['information_tests'],
                            dataset_title = title,
                            version_state = version_state,
+                           last_report_time = last_report_time,
                            passed_checks = (buckets['passed_checks']/buckets['visible_checks']) if buckets['visible_checks'] else 0,
                            passed_required = buckets['passed_required'],
                            total_required = buckets['total_required'],

@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime, timezone
 import sqlite3
 import json
 from constants import DB_NAME, CHECK_DESCRIPTIONS
@@ -21,6 +22,7 @@ def connect_to_database():
                     CREATE TABLE IF NOT EXISTS datasets(
                         dataset_id TEXT,
                         metadata TEXT NOT NULL,
+                        report_generated_at TEXT,
                         PRIMARY KEY(dataset_id))
                     """)
 
@@ -48,13 +50,16 @@ def cache_report(conn, dataset_id, metadata, report):
 
     #check if we already have a report cached in the database
 
+    generated_at = datetime.now(timezone.utc).isoformat()
+
     cursor.execute("""
-                    INSERT INTO datasets (dataset_id, metadata)
-                    VALUES (?, ?)
+                    INSERT INTO datasets (dataset_id, metadata, report_generated_at)
+                    VALUES (?, ?, ?)
                     ON CONFLICT (dataset_id)
-                    DO UPDATE SET metadata=? 
+                    DO UPDATE SET metadata=?, report_generated_at=?
                    """,
-                   (dataset_id, json.dumps(metadata), json.dumps(metadata)))
+                   (dataset_id, json.dumps(metadata), generated_at,
+                    json.dumps(metadata), generated_at))
 
     test_results = report["results"] 
 
@@ -85,7 +90,7 @@ def fetch_cached_report(conn, dataset_id):
     cursor = conn.cursor()
 
     cursor.execute("""
-                    SELECT metadata
+                    SELECT metadata, report_generated_at
                     FROM datasets
                     WHERE dataset_id = ?
                     """,
@@ -98,6 +103,7 @@ def fetch_cached_report(conn, dataset_id):
         return None
 
     metadata = json.loads(row[0])
+    report_generated_at = row[1]
 
     cursor.execute("""
                    SELECT *
@@ -122,7 +128,7 @@ def fetch_cached_report(conn, dataset_id):
         check_list.append(check_dict)     
 
 
-    return metadata, json.dumps(check_list)
+    return metadata, json.dumps(check_list), report_generated_at
 
 
 
